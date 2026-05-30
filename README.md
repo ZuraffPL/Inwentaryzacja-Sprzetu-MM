@@ -1,5 +1,10 @@
 # Inwentaryzacja Sprzętu
 
+[![Release](https://img.shields.io/github/v/release/ZuraffPL/Inwentaryzacja-Sprzetu-MM?label=wersja)](https://github.com/ZuraffPL/Inwentaryzacja-Sprzetu-MM/releases/latest)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows-0078d4)](https://github.com/ZuraffPL/Inwentaryzacja-Sprzetu-MM)
+
 Aplikacja desktopowa WPF do zarządzania bazą sprzętu rozmieszczonego na pawilonach sieci sklepów. Umożliwia przeglądanie, dodawanie, edycję i usuwanie rekordów sprzętowych per lokalizacja, śledzenie historii zdarzeń oraz synchronizację statusów.
 
 ## Wymagania systemowe
@@ -10,22 +15,34 @@ Aplikacja desktopowa WPF do zarządzania bazą sprzętu rozmieszczonego na pawil
 
 ## Uruchomienie
 
-```powershell
-# Sklonuj/pobierz projekt, następnie:
-cd "d:\Inwentaryzacja Sprzętu"
-
-dotnet restore
-dotnet build
-dotnet run
+**Opcja 1 — skrypt wsadowy (najszybciej):**
+```bat
+uruchom.bat
 ```
 
-Lub użyj dołączonego skryptu:
-
+**Opcja 2 — skrypt PowerShell:**
 ```powershell
 .\uruchom.ps1
 ```
 
+**Opcja 3 — ręcznie ze źródeł:**
+```powershell
+dotnet restore
+dotnet build
+.\bin\Debug\net10.0-windows\InwentaryzacjaSprzetu.exe
+```
+
 Przy pierwszym starcie aplikacja automatycznie tworzy bazę SQLite `inventory.db` i uruchamia migracje.
+
+## Budowanie instalatora
+
+Projekt zawiera skrypt Inno Setup (`installer.iss`) do zbudowania instalatora `.exe`.
+
+```bat
+Zbuduj-Installer.bat
+```
+
+Lub ręcznie — najpierw opublikuj aplikację, a następnie skompiluj skrypt `installer.iss` w [Inno Setup](https://jrsoftware.org/isinfo.php). Wynikowy plik instalatora pojawi się w folderze `Output/`.
 
 ## Funkcjonalności
 
@@ -120,6 +137,17 @@ Struktura plików projektu: [STRUKTURA.md](STRUKTURA.md)
 - Nowe zdarzenie „Nadanie nr inwentarzowego" — przypisanie numeru do sprzętu bez numeru z auto-generacją wg formatu kategorii/pawilonu
 - Poprawiono tytuł okna dodawania sprzętu (było: „Edycja sprzętu", powinno: „Dodaj sprzęt")
 - Naprawiono ścieżkę exe w `uruchom.bat` i `uruchom.ps1` po zmianie target framework
+
+### v1.9.3
+- Załączniki do zdarzeń — podpinanie plików JPG, PNG, PDF, WEBP do dowolnego zdarzenia
+- Dodawanie załączników: z dialogu edycji zdarzenia, przez menu kontekstowe (PPM → Dodaj załącznik), skrótem Ctrl+Z na zaznaczonym zdarzeniu
+- Przeglądanie załączników: okno z listą plików, otwieranie w domyślnej aplikacji (PPM → Pokaż załączniki [Z] lub klawisz Z)
+- Aplikacja pyta o folder przechowywania załączników przy pierwszym użyciu i zapamiętuje go w preferencjach
+- Wizualna indykacja w widoku zdarzeń — ikona spinacza obok każdego zdarzenia posiadającego załączniki
+- Eksport załączników jako archiwum ZIP (Narzędzia → Eksportuj załączniki jako ZIP) z manifestem oryginalnej ścieżki
+- Import załączników z ZIP (Narzędzia → Importuj załączniki z ZIP) — pyta o oryginalną lub nową ścieżkę ekstrakcji
+- Zwijanie/rozwijanie sekcji Aktywne zdarzenia i Archiwum zdarzeń przez kliknięcie w belkę nagłówkową
+- Migracja do .NET 10 — aktualizacja wszystkich pakietów do wersji 10.0.7
 
 ### v1.8.8
 - Filtrowanie po kategorii sprzętu (multi-select) — obok istniejących filtrów działu i statusu
