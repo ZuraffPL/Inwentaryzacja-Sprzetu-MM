@@ -5,6 +5,8 @@
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078d4)](https://github.com/ZuraffPL/Inwentaryzacja-Sprzetu-MM)
 
+![Splash screen aplikacji](docs/splash.png)
+
 Aplikacja desktopowa WPF do zarządzania bazą sprzętu rozmieszczonego na pawilonach sieci sklepów. Umożliwia przeglądanie, dodawanie, edycję i usuwanie rekordów sprzętowych per lokalizacja, śledzenie historii zdarzeń oraz synchronizację statusów.
 
 ## Wymagania systemowe
