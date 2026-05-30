@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>InwentaryzacjaSprzetu</RootNamespace>
+    <Nullable>enable</Nullable>
+    <!-- CA1416: ostrzeżenia o kompatybilności platformy Windows — aplikacja jest WPF/Windows-only, ostrzeżenie nieistotne -->
+    <NoWarn>CA1416</NoWarn>
+    <Version>1.9.4</Version>
+    <AssemblyVersion>1.9.4.0</AssemblyVersion>
+    <FileVersion>1.9.4.0</FileVersion>
+    <!-- Wyłącz auto-generowanie AssemblyInfo.cs — zapobiega duplikatom atrybutów z projektem WPF _wpftmp -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <!-- Zachowaj tylko języki używane w krajach operacji + angielski jako lingua franca -->
+    <!-- PL, SK, CS, HU, RO, HR, SR — usunięto pozostałe satelity .NET aby zmniejszyć rozmiar publikacji -->
+    <SatelliteResourceLanguages>pl;sk;cs;hu;ro;hr;sr;en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+    <PackageReference Include="QuestPDF" Version="2026.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Views\" />
+    <Folder Include="ViewModels\" />
+    <Folder Include="Services\" />
+    <Folder Include="Database\" />
+    <Folder Include="Resources\" />
+    <Folder Include="Helpers\" />
+  </ItemGroup>
+
+</Project>

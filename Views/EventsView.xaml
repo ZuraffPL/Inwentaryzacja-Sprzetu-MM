@@ -1,0 +1,389 @@
+﻿<UserControl x:Class="InwentaryzacjaSprzetu.Views.EventsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:ComponentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             xmlns:helpers="clr-namespace:InwentaryzacjaSprzetu.Helpers"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <helpers:EventTypeToPastelBackgroundConverter x:Key="EventTypeToPastelBackgroundConverter"/>
+        <helpers:EnumToStringConverter x:Key="EnumToStringConverter"/>
+        <helpers:EventStatusToForegroundConverter x:Key="EventStatusToForegroundConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+        <!-- Aktywne zdarzenia — grouped by EventType -->
+        <CollectionViewSource x:Key="ActiveEventsGrouped"
+                              Source="{Binding DataContext.ActiveEvents, RelativeSource={RelativeSource AncestorType=Window}}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="EventType"/>
+            </CollectionViewSource.GroupDescriptions>
+            <CollectionViewSource.SortDescriptions>
+                <ComponentModel:SortDescription PropertyName="EventType" Direction="Ascending"/>
+                <ComponentModel:SortDescription PropertyName="EventDate" Direction="Descending"/>
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+
+        <!-- Archiwum zdarzen — grouped by EventType -->
+        <CollectionViewSource x:Key="ArchivedEventsGrouped"
+                              Source="{Binding DataContext.ArchivedEvents, RelativeSource={RelativeSource AncestorType=Window}}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="EventType"/>
+            </CollectionViewSource.GroupDescriptions>
+            <CollectionViewSource.SortDescriptions>
+                <ComponentModel:SortDescription PropertyName="EventType" Direction="Ascending"/>
+                <ComponentModel:SortDescription PropertyName="EventDate" Direction="Descending"/>
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+
+        <!-- Wspolny styl wierszy DataGrid -->
+        <Style x:Key="EventRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="Transparent"/>
+            <Style.Triggers>
+                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                    <Setter Property="Background" Value="#F5F5F5"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#5B9BD5"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Styl grupowania dla aktywnych zdarzeń (domyślnie rozwinięte) -->
+        <Style x:Key="EventGroupContainerStyle" TargetType="{x:Type GroupItem}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                        <Border Background="{Binding Name, Converter={StaticResource EventTypeToPastelBackgroundConverter}}"
+                                CornerRadius="5" Margin="0,3" Padding="5">
+                            <Expander IsExpanded="True" Background="Transparent">
+                                <Expander.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name, Converter={StaticResource EnumToStringConverter}}"
+                                                   FontWeight="Bold" FontSize="14" Foreground="#333"/>
+                                        <TextBlock Text="{Binding ItemCount, StringFormat=' ({0} zdarze&#x144;)'}"
+                                                   FontWeight="Normal" FontSize="12" Foreground="#666" Margin="5,0"/>
+                                    </StackPanel>
+                                </Expander.Header>
+                                <ItemsPresenter Margin="15,5,0,5"/>
+                            </Expander>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Styl grupowania dla archiwalnych zdarzeń (domyślnie zwinięte) -->
+        <Style x:Key="ArchivedEventGroupContainerStyle" TargetType="{x:Type GroupItem}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                        <Border Background="{Binding Name, Converter={StaticResource EventTypeToPastelBackgroundConverter}}"
+                                CornerRadius="5" Margin="0,3" Padding="5">
+                            <Expander IsExpanded="False" Background="Transparent">
+                                <Expander.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name, Converter={StaticResource EnumToStringConverter}}"
+                                                   FontWeight="Bold" FontSize="14" Foreground="#333"/>
+                                        <TextBlock Text="{Binding ItemCount, StringFormat=' ({0} zdarze&#x144;)'}"
+                                                   FontWeight="Normal" FontSize="12" Foreground="#666" Margin="5,0"/>
+                                    </StackPanel>
+                                </Expander.Header>
+                                <ItemsPresenter Margin="15,5,0,5"/>
+                            </Expander>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Naglowek i przyciski -->
+        <Border Grid.Row="0" Background="#E8E8E8" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Historia Zdarze&#x144;" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                <Button Content="Dodaj zdarzenie" Margin="20,0,10,0" Padding="15,5"
+                        Command="{Binding DataContext.AddEventCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                <Button Content="Edytuj" Margin="0,0,10,0" Padding="15,5"
+                        Command="{Binding DataContext.EditEventCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                <Button Content="Usu&#x144;" Margin="0,0,10,0" Padding="15,5"
+                        Command="{Binding DataContext.DeleteEventCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                <Separator/>
+                <Button Content="Od&#x15B;wie&#x17C;" Margin="10,0,10,0" Padding="15,5"
+                        Command="{Binding DataContext.LoadEventsCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Zakladki pawilonow -->
+        <TabControl x:Name="EventsPavilionTabControl"
+                    Grid.Row="1"
+                    Background="#F0F0F0"
+                    BorderThickness="0,0,0,1"
+                    BorderBrush="#CCCCCC"
+                    Padding="0"
+                    SelectionChanged="PavilionTabs_SelectionChanged">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Padding" Value="12,5"/>
+                    <Setter Property="FontSize" Value="12"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="FontWeight" Value="Bold"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </TabControl.Resources>
+            <TabItem Header="Wszystkie" Tag="{x:Null}"/>
+        </TabControl>
+
+        <!-- ===== SEKCJA: AKTYWNE + ARCHIWUM w ScrollViewer ===== -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+
+            <!-- ===== SEKCJA: AKTYWNE ZDARZENIA ===== -->
+            <Border x:Name="ActiveSectionHeader" Background="#E8F5E9" BorderBrush="#A5D6A7" BorderThickness="0,0,0,1" Padding="10,5"
+                    Cursor="Hand" MouseLeftButtonUp="ActiveSectionHeader_Click">
+                <DockPanel LastChildFill="False">
+                    <TextBlock x:Name="ActiveSectionCollapseIcon" DockPanel.Dock="Left" Text="&#x25BC;" Foreground="#2E7D32" FontSize="10" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <TextBlock DockPanel.Dock="Left" Text="&#x2714;" Foreground="#2E7D32" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock DockPanel.Dock="Left" Text="Aktywne zdarzenia" FontWeight="SemiBold" FontSize="13" Foreground="#1B5E20" VerticalAlignment="Center"/>
+                    <TextBlock DockPanel.Dock="Left" Text="{Binding DataContext.ActiveEvents.Count, RelativeSource={RelativeSource AncestorType=Window}, StringFormat=' ({0})'}"
+                               FontSize="12" Foreground="#388E3C" VerticalAlignment="Center"/>
+                    <Button x:Name="ToggleActiveGroupsButton" DockPanel.Dock="Right"
+                            Width="28" Height="28" VerticalAlignment="Center"
+                            FontSize="13" FontWeight="Bold" Foreground="White"
+                            Click="ToggleActiveGroups_Click" ToolTip="Zwi&#x144; wszystkie grupy"
+                            BorderThickness="0" Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="#4CAF50"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="14"
+                                                    Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#388E3C"/></Trigger>
+                                                <Trigger Property="IsPressed" Value="True"><Setter Property="Background" Value="#2E7D32"/></Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        &#x229F;
+                    </Button>
+                </DockPanel>
+            </Border>
+
+            <DataGrid x:Name="ActiveEventsDataGrid"
+                      ItemsSource="{Binding Source={StaticResource ActiveEventsGrouped}}"
+                      SelectedItem="{Binding DataContext.SelectedEvent, RelativeSource={RelativeSource AncestorType=Window}}"
+                      AutoGenerateColumns="False"
+                      CanUserReorderColumns="True"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="True"
+                      SelectionMode="Single"
+                      GridLinesVisibility="Horizontal"
+                      AlternationCount="2"
+                      RowStyle="{StaticResource EventRowStyle}"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                      MouseDoubleClick="DataGrid_MouseDoubleClick"
+                      PreviewMouseRightButtonDown="DataGrid_PreviewMouseRightButtonDown"
+                      PreviewKeyDown="ActiveEventsDataGrid_PreviewKeyDown">
+
+                <DataGrid.Resources>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#5B9BD5"/>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="White"/>
+                </DataGrid.Resources>
+
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Edytuj"
+                                  Command="{Binding PlacementTarget.DataContext.EditEventWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                            <MenuItem.Icon><TextBlock Text="&#x270F;&#xFE0F;" FontSize="14"/></MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Prze&#x144;ie&#x15B; do archiwum"
+                                  Command="{Binding PlacementTarget.DataContext.ArchiveEventWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                            <MenuItem.Icon><TextBlock Text="&#x1F4C1;" FontSize="14"/></MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="Dodaj za&#x142;&#x105;cznik"
+                                  Command="{Binding PlacementTarget.DataContext.AddAttachmentToEventWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                            <MenuItem.Icon><TextBlock Text="&#x1F4CE;" FontSize="14"/></MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Poka&#x17C; za&#x142;&#x105;czniki [Z]"
+                                  Command="{Binding PlacementTarget.DataContext.ShowEventAttachmentsWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                            <MenuItem.Icon><TextBlock Text="&#x1F4CE;" FontSize="14"/></MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="Usu&#x144;"
+                                  Command="{Binding PlacementTarget.DataContext.DeleteEventWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                            <MenuItem.Icon><TextBlock Text="&#x1F5D1;&#xFE0F;" FontSize="14"/></MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+
+                <DataGrid.GroupStyle>
+                    <GroupStyle ContainerStyle="{StaticResource EventGroupContainerStyle}"/>
+                </DataGrid.GroupStyle>
+
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserResize="False" CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="&#x1F4CE;" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           ToolTip="Zdarzenie ma za&#x142;&#x105;czniki"
+                                           Visibility="{Binding HasAttachments, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Data"           Binding="{Binding EventDate, StringFormat=dd.MM.yyyy HH:mm}" Width="Auto" MinWidth="120" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Opis"           Binding="{Binding Description}"               Width="Auto" MinWidth="120"/>
+                    <DataGridTextColumn Header="Sprz&#x119;t"   Binding="{Binding Equipment.InventoryNumber}"  Width="Auto" MinWidth="100" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Zmiana"         Binding="{Binding ChangeSummary}"              Width="Auto" MinWidth="160" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Lokalizacja"    Binding="{Binding Location.Name}"              Width="Auto" MinWidth="100" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Wykonane przez" Binding="{Binding PerformedBy}"                Width="Auto" MinWidth="110"/>
+                    <DataGridTextColumn Header="Uwagi"          Binding="{Binding Notes}"                      Width="*"    MinWidth="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- ===== SEKCJA: ARCHIWUM ZDARZEN ===== -->
+            <Border x:Name="ArchivedSectionHeader" Background="#F5F5F5" BorderBrush="#BDBDBD" BorderThickness="0,1,0,1" Padding="10,5" Margin="0,8,0,0"
+                    Cursor="Hand" MouseLeftButtonUp="ArchivedSectionHeader_Click">
+                <DockPanel LastChildFill="False">
+                    <TextBlock x:Name="ArchivedSectionCollapseIcon" DockPanel.Dock="Left" Text="&#x25BC;" Foreground="#757575" FontSize="10" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <TextBlock DockPanel.Dock="Left" Text="&#x2714;" Foreground="#9E9E9E" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock DockPanel.Dock="Left" Text="Archiwum zdarze&#x144;" FontWeight="SemiBold" FontSize="13" Foreground="#424242" VerticalAlignment="Center"/>
+                    <TextBlock DockPanel.Dock="Left" Text="{Binding DataContext.ArchivedEvents.Count, RelativeSource={RelativeSource AncestorType=Window}, StringFormat=' ({0})'}"
+                               FontSize="12" Foreground="#757575" VerticalAlignment="Center"/>
+                    <Button x:Name="ToggleArchivedGroupsButton" DockPanel.Dock="Right"
+                            Width="28" Height="28" VerticalAlignment="Center"
+                            FontSize="13" FontWeight="Bold" Foreground="White"
+                            Click="ToggleArchivedGroups_Click" ToolTip="Zwi&#x144; wszystkie grupy"
+                            BorderThickness="0" Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="#9E9E9E"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="14"
+                                                    Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#757575"/></Trigger>
+                                                <Trigger Property="IsPressed" Value="True"><Setter Property="Background" Value="#616161"/></Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        &#x229F;
+                    </Button>
+                </DockPanel>
+            </Border>
+
+            <DataGrid x:Name="ArchivedEventsDataGrid"
+                      ItemsSource="{Binding Source={StaticResource ArchivedEventsGrouped}}"
+                      SelectedItem="{Binding DataContext.SelectedEvent, RelativeSource={RelativeSource AncestorType=Window}}"
+                      AutoGenerateColumns="False"
+                      CanUserReorderColumns="True"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="True"
+                      SelectionMode="Single"
+                      GridLinesVisibility="Horizontal"
+                      AlternationCount="2"
+                      RowStyle="{StaticResource EventRowStyle}"
+                      Opacity="0.85"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                      MouseDoubleClick="DataGrid_MouseDoubleClick"
+                      PreviewMouseRightButtonDown="DataGrid_PreviewMouseRightButtonDown"
+                      PreviewKeyDown="ArchivedEventsDataGrid_PreviewKeyDown">
+
+                <DataGrid.Resources>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#5B9BD5"/>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="White"/>
+                </DataGrid.Resources>
+
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Edytuj"
+                                  Command="{Binding PlacementTarget.DataContext.EditEventWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                            <MenuItem.Icon><TextBlock Text="&#x270F;&#xFE0F;" FontSize="14"/></MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Przywr&#xF3;&#x107; z archiwum"
+                                  Command="{Binding PlacementTarget.DataContext.RestoreEventWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                            <MenuItem.Icon><TextBlock Text="&#x21A9;&#xFE0F;" FontSize="14"/></MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="Dodaj za&#x142;&#x105;cznik"
+                                  Command="{Binding PlacementTarget.DataContext.AddAttachmentToEventWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                            <MenuItem.Icon><TextBlock Text="&#x1F4CE;" FontSize="14"/></MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Poka&#x17C; za&#x142;&#x105;czniki [Z]"
+                                  Command="{Binding PlacementTarget.DataContext.ShowEventAttachmentsWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                            <MenuItem.Icon><TextBlock Text="&#x1F4CE;" FontSize="14"/></MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="Usu&#x144;"
+                                  Command="{Binding PlacementTarget.DataContext.DeleteEventWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                            <MenuItem.Icon><TextBlock Text="&#x1F5D1;&#xFE0F;" FontSize="14"/></MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+
+                <DataGrid.GroupStyle>
+                    <GroupStyle ContainerStyle="{StaticResource ArchivedEventGroupContainerStyle}"/>
+                </DataGrid.GroupStyle>
+
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserResize="False" CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="&#x1F4CE;" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           ToolTip="Zdarzenie ma za&#x142;&#x105;czniki"
+                                           Visibility="{Binding HasAttachments, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Data"           Binding="{Binding EventDate, StringFormat=dd.MM.yyyy HH:mm}" Width="Auto" MinWidth="120" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Opis"           Binding="{Binding Description}"               Width="Auto" MinWidth="120"/>
+                    <DataGridTextColumn Header="Sprz&#x119;t"   Binding="{Binding Equipment.InventoryNumber}"  Width="Auto" MinWidth="100" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Zmiana"         Binding="{Binding ChangeSummary}"              Width="Auto" MinWidth="160" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Lokalizacja"    Binding="{Binding Location.Name}"              Width="Auto" MinWidth="100" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Wykonane przez" Binding="{Binding PerformedBy}"                Width="Auto" MinWidth="110"/>
+                    <DataGridTextColumn Header="Uwagi"          Binding="{Binding Notes}"                      Width="*"    MinWidth="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

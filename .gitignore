@@ -1,0 +1,54 @@
+## .NET / C# / WPF
+
+# Build outputs
+bin/
+obj/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# NuGet
+*.nupkg
+**/[Pp]ackages/
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# Rider
+.idea/
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+## Projekt — pliki lokalne / prywatne
+
+# Baza danych SQLite (lokalna, zawiera dane produkcyjne/osobowe)
+inventory.db
+inventory.db-shm
+inventory.db-wal
+inventory_backup*.db
+inventory_export*.db
+
+# Kopie zapasowe i eksporty ZIP
+*.zip
+InwentaryzacjaSprzetu_*.zip
+
+# Instalatory (Inno Setup output) — za duże do repozytorium
+InwentaryzacjaSprzetu_Setup_*.exe
+Output/
+
+# Pliki tymczasowe Windows
+Thumbs.db
+Desktop.ini
+*.tmp

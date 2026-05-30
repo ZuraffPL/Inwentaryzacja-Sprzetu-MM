@@ -1,0 +1,77 @@
+<Window x:Class="InwentaryzacjaSprzetu.Views.SplashWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Width="500" Height="300"
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        ShowInTaskbar="False">
+
+    <Border Background="#FF1E3A5F"
+            CornerRadius="10"
+            BorderBrush="#FF2E5F8A"
+            BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" BlurRadius="20" Opacity="0.5" ShadowDepth="5"/>
+        </Border.Effect>
+
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Logo / ikona -->
+            <TextBlock Grid.Row="0" Text="📦" FontSize="42"
+                       HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+            <!-- Nazwa aplikacji -->
+            <TextBlock Grid.Row="1"
+                       Text="Inwentaryzacja Sprzętu"
+                       FontSize="22" FontWeight="Bold"
+                       Foreground="White"
+                       HorizontalAlignment="Center"/>
+
+            <!-- Podtytuł -->
+            <TextBlock Grid.Row="2"
+                       Text="dla Merkury Market"
+                       FontSize="14"
+                       Foreground="#FFAAC8E8"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Top"
+                       Margin="0,4,0,0"/>
+
+            <!-- Status ładowania -->
+            <TextBlock Grid.Row="3"
+                       x:Name="StatusText"
+                       Text="Uruchamianie..."
+                       FontSize="11"
+                       Foreground="#FFAAC8E8"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,8"/>
+
+            <!-- Wersja -->
+            <TextBlock Grid.Row="4"
+                       x:Name="VersionText"
+                       Text=""
+                       FontSize="10"
+                       Foreground="#FF6A9FC0"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,4"/>
+
+            <!-- Autor -->
+            <TextBlock Grid.Row="4"
+                       Text="autor: Marcin Żurawicz"
+                       FontSize="9"
+                       Foreground="#FF4A7FA0"
+                       HorizontalAlignment="Center"
+                       Margin="0,16,0,0"/>
+        </Grid>
+    </Border>
+</Window>

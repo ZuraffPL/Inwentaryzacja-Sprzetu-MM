@@ -1,0 +1,83 @@
+<Window x:Class="InwentaryzacjaSprzetu.Views.DepartmentEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}" 
+        Height="400" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Nagłówek -->
+        <TextBlock Grid.Row="0" Text="{Binding Title}" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <!-- Formularz -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Kod -->
+                <StackPanel Margin="0,0,0,15">
+                    <TextBlock Text="Kod działu*:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding Department.Code, UpdateSourceTrigger=PropertyChanged}" 
+                             MaxLength="20"
+                             ToolTip="Wprowadź unikalny kod działu (np. AGD, CER)"/>
+                </StackPanel>
+
+                <!-- Nazwa -->
+                <StackPanel Margin="0,0,0,15">
+                    <TextBlock Text="Nazwa działu*:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding Department.Name, UpdateSourceTrigger=PropertyChanged}" 
+                             MaxLength="100"
+                             ToolTip="Wprowadź pełną nazwę działu"/>
+                </StackPanel>
+
+                <!-- Opis -->
+                <StackPanel Margin="0,0,0,15">
+                    <TextBlock Text="Opis:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding Department.Description, UpdateSourceTrigger=PropertyChanged}" 
+                             Height="60" 
+                             TextWrapping="Wrap" 
+                             AcceptsReturn="True"
+                             MaxLength="500"
+                             VerticalScrollBarVisibility="Auto"
+                             ToolTip="Opcjonalny opis działu"/>
+                </StackPanel>
+
+                <!-- Czy aktywny -->
+                <CheckBox IsChecked="{Binding Department.IsActive}" 
+                          Content="Dział aktywny" 
+                          Margin="0,0,0,15"
+                          ToolTip="Określa czy dział jest aktywny i dostępny do wyboru"/>
+
+                <!-- Informacje dodatkowe dla edycji -->
+                <StackPanel Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Separator Margin="0,10"/>
+                    <TextBlock Text="Informacje:" FontWeight="Bold" Margin="0,10,0,5"/>
+                    <TextBlock Text="{Binding Department.CreatedDate, StringFormat='Data utworzenia: {0:dd.MM.yyyy HH:mm}'}" 
+                               Margin="0,0,0,5"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Przyciski -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Zapisz" 
+                    IsDefault="True" 
+                    Width="80" 
+                    Height="30" 
+                    Margin="0,0,10,0"
+                    Click="SaveButton_Click"/>
+            <Button Content="Anuluj" 
+                    IsCancel="True" 
+                    Width="80" 
+                    Height="30"
+                    Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,410 @@
+<Window x:Class="InwentaryzacjaSprzetu.Views.EventEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="clr-namespace:InwentaryzacjaSprzetu.Models"
+        xmlns:helpers="clr-namespace:InwentaryzacjaSprzetu.Helpers"
+        mc:Ignorable="d"
+        Title="Edycja Zdarzenia" Height="600" Width="500"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <helpers:EnumToStringConverter x:Key="EnumToStringConverter"/>
+        <helpers:EventStatusToForegroundConverter x:Key="EventStatusToForegroundConverter"/>
+        <helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <helpers:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+    </Window.Resources>
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Formularz -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Typ zdarzenia -->
+                <Label Content="Typ zdarzenia:" FontWeight="Bold"/>
+                <ComboBox SelectedValue="{Binding EventType}" 
+                          SelectedValuePath="Tag" 
+                          Margin="0,0,0,10">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Content}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                    <ComboBox.Items>
+                        <ComboBoxItem Content="Zakup" Tag="{x:Static models:InventoryEventType.Purchase}"/>
+                        <ComboBoxItem Content="Przeniesienie" Tag="{x:Static models:InventoryEventType.Transfer}"/>
+                        <ComboBoxItem Content="Konserwacja" Tag="{x:Static models:InventoryEventType.Maintenance}"/>
+                        <ComboBoxItem Content="Naprawa" Tag="{x:Static models:InventoryEventType.Repair}"/>
+                        <ComboBoxItem Content="Kasacja" Tag="{x:Static models:InventoryEventType.Disposal}"/>
+                        <ComboBoxItem Content="Zmiana nr inwentarzowego" Tag="{x:Static models:InventoryEventType.Audit}"/>
+                        <ComboBoxItem Content="Zmiana statusu" Tag="{x:Static models:InventoryEventType.StatusChange}"/>
+                        <ComboBoxItem Content="Zmiana działu" Tag="{x:Static models:InventoryEventType.DepartmentChange}"/>
+                        <ComboBoxItem Content="Zmiana adresu IP" Tag="{x:Static models:InventoryEventType.IpAddressChange}"/>
+                        <ComboBoxItem Content="Zmiana nr unikatowego kasy fiskalnej" Tag="{x:Static models:InventoryEventType.FiscalNumberChange}"/>
+                        <ComboBoxItem Content="Nadanie nr inwentarzowego" Tag="{x:Static models:InventoryEventType.InventoryNumberAssignment}"/>
+                        <ComboBoxItem Content="Inne" Tag="{x:Static models:InventoryEventType.Other}"/>
+                    </ComboBox.Items>
+                </ComboBox>
+
+                <!-- Data zdarzenia -->
+                <Label Content="Data zdarzenia:" FontWeight="Bold"/>
+                <DatePicker SelectedDate="{Binding EventDate}" Margin="0,0,0,10"/>
+
+                <!-- Opis -->
+                <Label Content="Opis:" FontWeight="Bold"/>
+                <TextBox Text="{Binding Description}" 
+                         TextWrapping="Wrap" AcceptsReturn="True"
+                         Height="80" Margin="0,0,0,10" 
+                         VerticalScrollBarVisibility="Auto"/>
+
+                <!-- Sprzęt (standardowy — ukryty przy Nadaniu nr) -->
+                <Label Content="Sprzęt:" FontWeight="Bold"
+                       Visibility="{Binding IsStandardEquipmentSelector, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <ComboBox ItemsSource="{Binding Equipment}"
+                          SelectedItem="{Binding SelectedEquipment}"
+                          TextSearch.TextPath="InventoryNumber"
+                          IsEditable="False"
+                          Margin="0,0,0,10"
+                          Visibility="{Binding IsStandardEquipmentSelector, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding InventoryNumber}" FontWeight="Bold" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Name}" Foreground="Gray"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <!-- SEKCJA: Nadanie nr inwentarzowego -->
+                <Border Background="#F0E6FF" BorderBrush="#AB47BC" BorderThickness="1"
+                        CornerRadius="3" Padding="8,6" Margin="0,0,0,10"
+                        Visibility="{Binding IsInventoryNumberAssignmentEvent, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock TextWrapping="Wrap" FontSize="11">
+                            <Run FontWeight="Bold" Text="🔢 Nadanie nr inwentarzowego — "/>
+                            <Run Text="wybierz sprzęt bez numeru inwentarzowego. Podaj numer sprzętu, aby automatycznie wygenerować poprawny nr wg formatu dla danej kategorii i pawilonu."/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <Label Content="Sprzęt bez nr inwentarzowego:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsInventoryNumberAssignmentEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <ComboBox ItemsSource="{Binding EquipmentWithoutInventoryNumber}"
+                          SelectedItem="{Binding SelectedEquipment}"
+                          TextSearch.TextPath="Name"
+                          IsEditable="False"
+                          Margin="0,0,0,10"
+                          Visibility="{Binding IsInventoryNumberAssignmentEvent, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="❓" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding Location.Name}" Foreground="Gray"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <Label Content="Numer sprzętu (np. 12):"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsInventoryNumberAssignmentEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBox Text="{Binding AssignedEquipmentNumber, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                         Margin="0,0,0,6"
+                         ToolTip="Podaj numer sprzętu — nr inwentarzowy zostanie wygenerowany automatycznie wg formatu kategorii i pawilonu"
+                         Visibility="{Binding IsInventoryNumberAssignmentEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <Label Content="Wygenerowany nr inwentarzowy:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsInventoryNumberAssignmentEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBox Text="{Binding AssignedInventoryNumberPreview, Mode=OneWay}"
+                         IsReadOnly="True"
+                         Margin="0,0,0,10"
+                         Background="#F0F0F0"
+                         FontWeight="Bold" Foreground="#4A148C"
+                         ToolTip="Automatycznie wygenerowany nr inwentarzowy. Zostanie przypisany do sprzętu po zapisaniu zdarzenia."
+                         Visibility="{Binding IsInventoryNumberAssignmentEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <Label Content="Cena zakupu (PLN):"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsPurchaseEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBox Text="{Binding PurchasePrice, StringFormat=N2, TargetNullValue=''}"
+                         Margin="0,0,0,10"
+                         Visibility="{Binding IsPurchaseEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <!-- Nowy status sprzętu (tylko dla Zmiany statusu) -->
+                <Label Content="Status przed zmianą:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsStatusChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <Border Background="#FFF5F5F5" BorderBrush="#FFDDDDDD" BorderThickness="1"
+                        Padding="8,6" Margin="0,0,0,10"
+                        Visibility="{Binding IsStatusChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="{Binding PreviousStatus, Converter={StaticResource EnumToStringConverter}}"
+                               FontStyle="Italic" Foreground="#FF555555"/>
+                </Border>
+
+                <Label Content="Nowy status sprzętu:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsStatusChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <ComboBox SelectedValue="{Binding NewStatus}"
+                          SelectedValuePath="Tag"
+                          Margin="0,0,0,10"
+                          Visibility="{Binding IsStatusChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ComboBoxItem Content="Sprawny"              Tag="Active"/>
+                    <ComboBoxItem Content="Rezerwa"              Tag="Inactive"/>
+                    <ComboBoxItem Content="W konserwacji"        Tag="UnderMaintenance"/>
+                    <ComboBoxItem Content="Zepsuty (uszkodzony)" Tag="Damaged"/>
+                    <ComboBoxItem Content="Zutylizowany (kasacja)" Tag="Disposed"/>
+                </ComboBox>
+
+                <!-- Lokalizacja -->
+                <Label Content="Lokalizacja:" FontWeight="Bold"/>
+                <ComboBox ItemsSource="{Binding Locations}"
+                          SelectedValue="{Binding LocationId}"
+                          SelectedValuePath="Id"
+                          DisplayMemberPath="Name"
+                          Margin="0,0,0,10"/>
+
+                <!-- Nowy dział (tylko dla Zmiany działu) -->
+                <Label Content="Poprzedni dział:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsDepartmentChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <Border Background="#FFF5F5F5" BorderBrush="#FFDDDDDD" BorderThickness="1"
+                        Padding="8,6" Margin="0,0,0,10"
+                        Visibility="{Binding IsDepartmentChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="{Binding PreviousDepartmentName, TargetNullValue='—'}"
+                               FontStyle="Italic" Foreground="#FF555555"/>
+                </Border>
+
+                <Label Content="Nowy dział:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsDepartmentChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <ComboBox ItemsSource="{Binding Departments}"
+                          SelectedItem="{Binding SelectedNewDepartment}"
+                          DisplayMemberPath="Name"
+                          Margin="0,0,0,10" Height="25"
+                          Visibility="{Binding IsDepartmentChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <!-- Zmiana nr inwentarzowego -->
+                <Border Background="#FFF8E1" BorderBrush="#FFE082" BorderThickness="1"
+                        CornerRadius="3" Padding="8,6" Margin="0,0,0,10"
+                        Visibility="{Binding IsInventoryNumberChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel>
+                        <!-- Informacja gdy sprzęt jest wybrany z listy -->
+                        <TextBlock TextWrapping="Wrap" FontSize="11"
+                                   Visibility="{Binding SelectedEquipment, Converter={StaticResource NullToVisibilityConverter}}">
+                            <Run FontWeight="Bold" Text="✔ Sprzęt wybrany z bazy — "/>
+                            <Run Text="poprzedni numer zostanie pobrany automatycznie, a po zapisaniu zostanie zaktualizowany w danych sprzętu."/>
+                        </TextBlock>
+                        <!-- Informacja gdy sprzęt NIE jest wybrany -->
+                        <TextBlock TextWrapping="Wrap" FontSize="11"
+                                   Visibility="{Binding SelectedEquipment, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Invert}">
+                            <Run FontWeight="Bold" Text="ℹ Sprzęt nie wybrany — "/>
+                            <Run Text="wybierz go z listy powyżej (numer zostanie zaktualizowany automatycznie), lub wpisz oba numery ręcznie jeśli sprzęt pochodzi z innego pawilonu."/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <Label Content="Poprzedni nr inwentarzowy:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsInventoryNumberChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBox Text="{Binding PreviousInventoryNumber, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,10"
+                         ToolTip="Auto-wypełniony z wybranego sprzętu. Wpisz ręcznie, jeśli sprzęt pochodzi z innego pawilonu."
+                         Visibility="{Binding IsInventoryNumberChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <Label Content="Nowy nr inwentarzowy:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsInventoryNumberChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBox Text="{Binding NewInventoryNumber, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,10"
+                         ToolTip="Nowy numer inwentarzowy, który zostanie przypisany do sprzętu w bazie."
+                         Visibility="{Binding IsInventoryNumberChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <!-- Zmiana adresu IP -->
+                <Label Content="Poprzedni adres IP:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsIpAddressChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBox Text="{Binding PreviousIpAddress, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,4"
+                         ToolTip="Auto-wypełniany z danych sprzętu. Możesz wpisać ręcznie."
+                         Visibility="{Binding IsIpAddressChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBlock Text="(pozostaw puste, jeśli sprzęt nie miał adresu IP)"
+                           Foreground="#FF888888" FontSize="11" FontStyle="Italic" Margin="0,0,0,10"
+                           Visibility="{Binding IsIpAddressChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <Label Content="Nowy adres IP:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsIpAddressChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBox Text="{Binding NewIpAddress, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,10"
+                         ToolTip="np. 192.168.1.100 — zostanie zaktualizowany w danych sprzętu"
+                         Visibility="{Binding IsIpAddressChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <!-- Zmiana nr unikatowego kasy fiskalnej -->
+                <Border Background="#FFF8E1" BorderBrush="#FFE082" BorderThickness="1"
+                        CornerRadius="3" Padding="8,6" Margin="0,0,0,10"
+                        Visibility="{Binding IsFiscalNumberChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock TextWrapping="Wrap" FontSize="11">
+                        <Run FontWeight="Bold" Text="&#x2139; Kasa fiskalna — "/>
+                        <Run Text="poprzedni nr unikatowy zostanie pobrany automatycznie z wybranego sprzętu i zastąpiony nowym po zapisaniu."/>
+                    </TextBlock>
+                </Border>
+
+                <Label Content="Poprzedni nr unikatowy:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsFiscalNumberChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBox Text="{Binding PreviousSerialNumber, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,10"
+                         ToolTip="Auto-wypełniany z danych sprzętu. Możesz wpisać ręcznie."
+                         Visibility="{Binding IsFiscalNumberChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <Label Content="Nowy nr unikatowy:"
+                       FontWeight="Bold"
+                       Visibility="{Binding IsFiscalNumberChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBox Text="{Binding NewSerialNumber, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,10"
+                         ToolTip="Nowy nr unikatowy, który zostanie przypisany do kasy fiskalnej."
+                         Visibility="{Binding IsFiscalNumberChangeEvent, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <!-- Wykonane przez -->
+                <Label Content="Wykonane przez:" FontWeight="Bold"/>
+                <TextBox Text="{Binding PerformedBy}" Margin="0,0,0,10" Height="25"/>
+
+                <!-- Status zdarzenia -->
+                <Label Content="Status zdarzenia:" FontWeight="Bold"/>
+                <ComboBox SelectedValue="{Binding EventStatus}"
+                          SelectedValuePath="Tag"
+                          Margin="0,0,0,10" Height="25">
+                    <ComboBoxItem Tag="{x:Static models:EventStatus.Active}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="✔" Foreground="#2E7D32" FontSize="13" Margin="0,0,6,0"/>
+                            <TextBlock Text="Aktywne"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem Tag="{x:Static models:EventStatus.Completed}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="✔" Foreground="#9E9E9E" FontSize="13" Margin="0,0,6,0"/>
+                            <TextBlock Text="Zakończone (archiwum)"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                </ComboBox>
+
+                <!-- Uwagi -->
+                <Label Content="Uwagi:" FontWeight="Bold"/>
+                <TextBox Text="{Binding Notes}" 
+                         TextWrapping="Wrap" AcceptsReturn="True"
+                         Height="80" Margin="0,0,0,10" 
+                         VerticalScrollBarVisibility="Auto"/>
+
+                <!-- ===== Załączniki ===== -->
+                <Separator Margin="0,10,0,10"/>
+                <Label Content="Załączniki:" FontWeight="Bold"/>
+
+                <!-- Tryb edycji: istniejące załączniki + dodawanie -->
+                <StackPanel Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ItemsControl ItemsSource="{Binding ExistingAttachments}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding OriginalFileName, Converter={StaticResource FileExtToIconConverter}}"
+                                               FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding OriginalFileName}"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding OriginalFileName}"/>
+                                    <Button Grid.Column="2"
+                                            Content="Usuń"
+                                            FontSize="11" Padding="6,2"
+                                            Background="#FFFFEEEE"
+                                            Command="{Binding DataContext.RemoveExistingAttachmentCommand,
+                                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="(brak załączników)"
+                               Foreground="#FF888888" FontStyle="Italic" FontSize="11"
+                               Margin="0,4">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ExistingAttachments.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <Button Content="+ Dodaj załącznik"
+                            HorizontalAlignment="Left"
+                            Command="{Binding AddAttachmentCommand}"
+                            Padding="10,5" Margin="0,6,0,0"/>
+                </StackPanel>
+
+                <!-- Tryb dodawania: lista oczekujących + informacja -->
+                <StackPanel Visibility="{Binding IsEditMode, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                    <ItemsControl ItemsSource="{Binding PendingAttachments}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding Converter={StaticResource FileExtToIconConverter}}"
+                                               FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding}"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding}"/>
+                                    <Button Grid.Column="2"
+                                            Content="Usuń"
+                                            FontSize="11" Padding="6,2"
+                                            Background="#FFFFEEEE"
+                                            Command="{Binding DataContext.RemovePendingAttachmentCommand,
+                                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Content="+ Dodaj załącznik"
+                            HorizontalAlignment="Left"
+                            Command="{Binding AddAttachmentCommand}"
+                            Padding="10,5" Margin="0,6,0,4"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#FF666666"
+                               Text="Wybrane pliki zostaną skopiowane po zapisaniu zdarzenia."/>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Przyciski -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Zapisz" Command="{Binding SaveCommand}" 
+                    Padding="20,8" Margin="0,0,10,0" IsDefault="True"/>
+            <Button Content="Anuluj" Command="{Binding CancelCommand}" 
+                    Padding="20,8" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

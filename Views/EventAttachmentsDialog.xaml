@@ -1,0 +1,206 @@
+<Window x:Class="InwentaryzacjaSprzetu.Views.EventAttachmentsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Załączniki zdarzenia" Height="480" Width="620"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResize" MinWidth="500" MinHeight="320">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Nagłówek -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="Załączniki zdarzenia" FontSize="16" FontWeight="Bold"/>
+            <TextBlock Text="{Binding EventDescription}" FontSize="12" Foreground="#555" TextTrimming="CharacterEllipsis"/>
+        </StackPanel>
+
+        <!-- Pasek akcji -->
+        <DockPanel Grid.Row="1" Margin="0,0,0,8" LastChildFill="False">
+            <Button DockPanel.Dock="Left" Content="&#x1F4CE; Dodaj załącznik"
+                    Command="{Binding AddAttachmentCommand}"
+                    Padding="12,5" Margin="0,0,8,0"
+                    Background="#2196F3" Foreground="White" BorderThickness="0">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#2196F3"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding" Value="12,5"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="3" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#1976D2"/></Trigger>
+                                        <Trigger Property="IsPressed" Value="True"><Setter Property="Background" Value="#0D47A1"/></Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <Button DockPanel.Dock="Right" Content="&#x1F4C2; Zmień folder"
+                    Command="{Binding ChangeAttachmentsFolderCommand}"
+                    Padding="10,5" ToolTip="Zmień folder przechowywania załączników"
+                    Background="Transparent" BorderBrush="#BDBDBD" Foreground="#555">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderBrush" Value="#BDBDBD"/>
+                        <Setter Property="Foreground" Value="#555"/>
+                        <Setter Property="Padding" Value="10,5"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="1" CornerRadius="3" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#F5F5F5"/></Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </DockPanel>
+
+        <!-- Lista załączników -->
+        <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="3">
+            <Grid>
+                <!-- Komunikat gdy brak załączników -->
+                <TextBlock Text="Brak załączników. Kliknij 'Dodaj załącznik' aby dodać plik."
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="#9E9E9E" FontStyle="Italic" FontSize="13">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Attachments.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <ListView ItemsSource="{Binding Attachments}"
+                          SelectedItem="{Binding SelectedAttachment}"
+                          BorderThickness="0"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Padding" Value="8,6"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Ikona wg rozszerzenia -->
+                                <TextBlock Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center"
+                                           FontSize="20" Text="{Binding OriginalFileName, Converter={StaticResource FileExtToIconConverter}}"/>
+
+                                <!-- Nazwa + data -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding OriginalFileName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding CreatedAt, StringFormat='Dodano: dd.MM.yyyy HH:mm'}"
+                                               FontSize="11" Foreground="#757575"/>
+                                </StackPanel>
+
+                                <!-- Otwórz -->
+                                <Button Grid.Column="3" Content="Otwórz" Margin="6,0,4,0" Padding="10,3"
+                                        Command="{Binding DataContext.OpenAttachmentCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                        CommandParameter="{Binding}">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="#E3F2FD"/>
+                                            <Setter Property="Foreground" Value="#1565C0"/>
+                                            <Setter Property="BorderBrush" Value="#90CAF9"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Setter Property="Cursor" Value="Hand"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3"
+                                                                Padding="{TemplateBinding Padding}">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#BBDEFB"/></Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+
+                                <!-- Usuń -->
+                                <Button Grid.Column="4" Content="Usuń" Padding="10,3"
+                                        Command="{Binding DataContext.DeleteAttachmentCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                        CommandParameter="{Binding}">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="#FFEBEE"/>
+                                            <Setter Property="Foreground" Value="#C62828"/>
+                                            <Setter Property="BorderBrush" Value="#EF9A9A"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Setter Property="Cursor" Value="Hand"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3"
+                                                                Padding="{TemplateBinding Padding}">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#FFCDD2"/></Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Border>
+
+        <!-- Stopka -->
+        <DockPanel Grid.Row="3" Margin="0,10,0,0" LastChildFill="False">
+            <TextBlock DockPanel.Dock="Left" Foreground="#9E9E9E" FontSize="11" VerticalAlignment="Center"
+                       Text="{Binding Attachments.Count, StringFormat='Łącznie: {0} załącznik(ów)'}"/>
+            <Button DockPanel.Dock="Right" Content="Zamknij" Padding="20,6" Click="CloseButton_Click"
+                    IsDefault="True" IsCancel="True"/>
+        </DockPanel>
+    </Grid>
+</Window>

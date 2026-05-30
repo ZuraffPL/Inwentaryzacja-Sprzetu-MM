@@ -1,0 +1,515 @@
+<UserControl x:Class="InwentaryzacjaSprzetu.Views.EquipmentView"
+             x:Name="ThisView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:ComponentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             xmlns:helpers="clr-namespace:InwentaryzacjaSprzetu.Helpers"
+             xmlns:models="clr-namespace:InwentaryzacjaSprzetu.Models"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    
+    <UserControl.Resources>
+        <helpers:CategoryToPastelBackgroundConverter x:Key="CategoryToPastelBackgroundConverter"/>
+        <helpers:IpAddressDisplayConverter x:Key="IpAddressDisplayConverter"/>
+        <helpers:ConnectedComputerDisplayConverter x:Key="ConnectedComputerDisplayConverter"/>
+        <helpers:CategoryNameToColumnLabelsConverter x:Key="CategoryNameToColumnLabelsConverter"/>
+        <helpers:GroupItemsToSummaryConverter x:Key="GroupItemsToSummaryConverter"/>
+        <!-- Proxy do bindowania w nagłówkach kolumn DataGrid (ElementName nie działa poza drzewem wizualnym) -->
+        <helpers:BindingProxy x:Key="Proxy" Data="{Binding}"/>
+        <!-- Proxy do bindowania właściwości EquipmentView w GroupStyle -->
+        <helpers:BindingProxy x:Key="ViewProxy" Data="{Binding ElementName=ThisView}"/>
+        <CollectionViewSource x:Key="EquipmentGrouped" Source="{Binding DataContext.Equipment, RelativeSource={RelativeSource AncestorType=Window}}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Category.Name"/>
+            </CollectionViewSource.GroupDescriptions>
+            <CollectionViewSource.SortDescriptions>
+                <ComponentModel:SortDescription PropertyName="Category.SortOrder" Direction="Ascending"/>
+                <ComponentModel:SortDescription PropertyName="InventoryNumberSortKey" Direction="Ascending"/>
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Nagłówek i przyciski -->
+        <Border Grid.Row="0" Background="#E8E8E8" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Zarządzanie Sprzętem" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                <Button Content="Dodaj nowy" Margin="20,0,10,0" Padding="15,5"
+                        Command="{Binding DataContext.AddEquipmentCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                <Button Content="Edytuj" Margin="0,0,10,0" Padding="15,5"
+                        Command="{Binding DataContext.EditEquipmentCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                <Button Content="Usuń" Margin="0,0,10,0" Padding="15,5"
+                        Command="{Binding DataContext.DeleteEquipmentCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                <Separator/>
+                <Button Content="📄 Eksport PDF" Margin="10,0,10,0" Padding="15,5"
+                        Command="{Binding DataContext.ExportEquipmentToPdfCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        ToolTip="Eksportuj widoczny (przefiltrowany) sprzęt do pliku PDF (układ poziomy)"/>
+                <Button Content="Import" Margin="0,0,10,0" Padding="15,5"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Pasek filtrów (multi-select) -->
+        <Border Grid.Row="1" Background="#FFFBF0" Padding="8,5" BorderBrush="#E0D8B0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Filtruj:" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"
+                           Margin="0,0,12,0" Foreground="#666"/>
+
+                <!-- ── Filtr działu (multi-select dropdown) ── -->
+                <TextBlock Text="Dział:" FontSize="12" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#555"/>
+                <Grid Margin="0,0,14,0" VerticalAlignment="Center">
+                    <ToggleButton x:Name="DeptFilterToggle" MinWidth="160" Padding="8,4" FontSize="12"
+                                  Content="{Binding DataContext.DepartmentFilterSummary, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                    <Popup IsOpen="{Binding IsChecked, ElementName=DeptFilterToggle, Mode=TwoWay}"
+                           StaysOpen="False" PlacementTarget="{Binding ElementName=DeptFilterToggle}"
+                           Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade">
+                        <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1" CornerRadius="3" Padding="4">
+                            <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto" MinWidth="190">
+                                <ItemsControl ItemsSource="{Binding DataContext.DepartmentFilterItems, RelativeSource={RelativeSource AncestorType=Window}}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                      Content="{Binding Label}" Padding="5,4" Margin="2,1"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                </Grid>
+
+                <!-- ── Filtr statusu (multi-select dropdown) ── -->
+                <TextBlock Text="Status:" FontSize="12" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#555"/>
+                <Grid Margin="0,0,14,0" VerticalAlignment="Center">
+                    <ToggleButton x:Name="StatusFilterToggle" MinWidth="160" Padding="8,4" FontSize="12"
+                                  Content="{Binding DataContext.StatusFilterSummary, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                    <Popup IsOpen="{Binding IsChecked, ElementName=StatusFilterToggle, Mode=TwoWay}"
+                           StaysOpen="False" PlacementTarget="{Binding ElementName=StatusFilterToggle}"
+                           Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade">
+                        <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1" CornerRadius="3" Padding="4">
+                            <ItemsControl ItemsSource="{Binding DataContext.StatusFilterItems, RelativeSource={RelativeSource AncestorType=Window}}"
+                                          MinWidth="210">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  Content="{Binding Label}" Padding="5,4" Margin="2,1"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                    </Popup>
+                </Grid>
+
+                <!-- ── Filtr kategorii (multi-select dropdown) ── -->
+                <TextBlock Text="Kategoria:" FontSize="12" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#555"/>
+                <Grid Margin="0,0,14,0" VerticalAlignment="Center">
+                    <ToggleButton x:Name="CategoryFilterToggle" MinWidth="160" Padding="8,4" FontSize="12"
+                                  Content="{Binding DataContext.CategoryFilterSummary, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                    <Popup IsOpen="{Binding IsChecked, ElementName=CategoryFilterToggle, Mode=TwoWay}"
+                           StaysOpen="False" PlacementTarget="{Binding ElementName=CategoryFilterToggle}"
+                           Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade">
+                        <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1" CornerRadius="3" Padding="4">
+                            <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto" MinWidth="210">
+                                <ItemsControl ItemsSource="{Binding DataContext.CategoryFilterItems, RelativeSource={RelativeSource AncestorType=Window}}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                      Content="{Binding Label}" Padding="5,4" Margin="2,1"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                </Grid>
+
+                <!-- Wyczyść filtry -->
+                <Button Content="✕ Wyczyść filtry" Padding="10,3" VerticalAlignment="Center"
+                        Command="{Binding DataContext.ClearEquipmentFiltersCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Nawigacja: pasek krajów + pasek pawilonów -->
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- ── Pasek krajów ── -->
+            <DockPanel Grid.Row="0" Background="#E0E0E8" LastChildFill="True" MinHeight="30">
+                <TextBlock DockPanel.Dock="Left" Text="Kraj:" FontWeight="Bold" FontSize="11"
+                           VerticalAlignment="Center" Margin="8,0,5,0" Foreground="#444"/>
+                <Button DockPanel.Dock="Right" x:Name="CountryMgmtButton"
+                        Content="☰" ToolTip="Pokaż / ukryj kraje"
+                        Width="28" Height="24" Margin="3,3" VerticalAlignment="Center"
+                        Click="CountryMgmt_Click" Background="#C8C8D8" BorderBrush="#AAAACC"/>
+                <TabControl x:Name="CountryTabControl"
+                            Background="Transparent" BorderThickness="0"
+                            Padding="0" VerticalAlignment="Center"
+                            SelectionChanged="CountryTabs_SelectionChanged">
+                    <TabControl.Resources>
+                        <Style TargetType="TabItem">
+                            <Setter Property="Padding" Value="10,4"/>
+                            <Setter Property="FontSize" Value="11"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="Background" Value="#D0D8F0"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TabControl.Resources>
+                    <TabItem Header="Wszystkie kraje" Tag="{x:Null}"/>
+                    <!-- Zakładki krajów generowane w code-behind -->
+                </TabControl>
+            </DockPanel>
+
+            <!-- ── Pasek pawilonów ── -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="ToggleGroupsButton" Grid.Column="0"
+                        Width="28" Height="28" VerticalAlignment="Center" Margin="4,2,4,2"
+                        FontSize="13" FontWeight="Bold" Foreground="White"
+                        Click="ToggleGroups_Click" ToolTip="Zwiń wszystkie kategorie"
+                        BorderThickness="0" Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="#4CAF50"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="14"
+                                                Width="{TemplateBinding Width}"
+                                                Height="{TemplateBinding Height}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#388E3C"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter Property="Background" Value="#2E7D32"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                    ⊟</Button>
+
+                <TabControl x:Name="PavilionTabControl" Grid.Column="1"
+                            Background="#F0F0F0" BorderThickness="0,0,0,1" BorderBrush="#CCCCCC"
+                            Padding="0" SelectionChanged="PavilionTabs_SelectionChanged">
+                    <TabControl.Resources>
+                        <Style TargetType="TabItem">
+                            <Setter Property="Padding" Value="12,5"/>
+                            <Setter Property="FontSize" Value="12"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TabControl.Resources>
+                    <TabItem Header="Wszystkie" Tag="{x:Null}"/>
+                    <!-- Zakładki pawilonów generowane w code-behind -->
+                </TabControl>
+            </Grid>
+        </Grid>
+        <!-- Lista sprzętu z grupowaniem -->
+        <DataGrid x:Name="EquipmentDataGrid"
+                  Grid.Row="3" 
+                  ItemsSource="{Binding Source={StaticResource EquipmentGrouped}}"
+                  SelectedItem="{Binding DataContext.SelectedEquipment, RelativeSource={RelativeSource AncestorType=Window}}"
+                  AutoGenerateColumns="False"
+                  CanUserReorderColumns="True"
+                  CanUserResizeColumns="True"
+                  CanUserSortColumns="True"
+                  SelectionMode="Single"
+                  GridLinesVisibility="Horizontal"
+                  AlternationCount="2"
+                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                  MouseDoubleClick="DataGrid_MouseDoubleClick"
+                  PreviewMouseRightButtonDown="DataGrid_PreviewMouseRightButtonDown">
+
+            <!-- Zachowanie niebieskiego zaznaczenia nawet gdy DataGrid nie ma fokusa -->
+            <DataGrid.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#5B9BD5"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="White"/>
+            </DataGrid.Resources>
+
+            <!-- Kolorowanie wierszy wg statusu -->
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Style.Triggers>
+                        <!-- Naprzemienne tło -->
+                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                            <Setter Property="Background" Value="#F5F5F5"/>
+                        </Trigger>
+                        <!-- Statusy mają wyższy priorytet niż naprzemienne tło -->
+                        <!-- Dział Rezerwa (REZ) — ciemnofioletowy; nadpisywany przez statusy inne niż Sprawny -->
+                        <DataTrigger Binding="{Binding Department.Code}" Value="REZ">
+                            <Setter Property="Background" Value="#C9B3E8"/>
+                            <Setter Property="ToolTip" Value="Dział: Rezerwa"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:EquipmentStatus.Damaged}">
+                            <Setter Property="Background" Value="#FFD580"/>
+                            <Setter Property="ToolTip" Value="Zepsuty (uszkodzony)"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:EquipmentStatus.Disposed}">
+                            <Setter Property="Background" Value="#FFAAAA"/>
+                            <Setter Property="ToolTip" Value="Zutylizowany (kasacja)"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:EquipmentStatus.UnderMaintenance}">
+                            <Setter Property="Background" Value="#B3D9FF"/>
+                            <Setter Property="ToolTip" Value="W konserwacji"/>
+                        </DataTrigger>
+                        <!-- Zaznaczony wiersz — nadpisuje wszystkie powyższe -->
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#5B9BD5"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+            
+            <!-- Menu kontekstowe -->
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Edytuj" 
+                              Command="{Binding PlacementTarget.DataContext.EditEquipmentWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="✏️" FontSize="14"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Usuń" 
+                              Command="{Binding PlacementTarget.DataContext.DeleteEquipmentWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="🗑️" FontSize="14"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="Dodaj zdarzenie" 
+                              Command="{Binding PlacementTarget.DataContext.AddEventForEquipmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" 
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📝" FontSize="14"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Pokaż zdarzenia"
+                              Command="{Binding PlacementTarget.DataContext.ShowEquipmentEventsWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📋" FontSize="14"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Pokaż podpięty sprzęt"
+                              Command="{Binding PlacementTarget.DataContext.ShowConnectedEquipmentWithParameterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                        <MenuItem.Icon>
+                            <TextBlock Text="🖥️" FontSize="14"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+            
+            <!-- Grupowanie -->
+            <DataGrid.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                                        <Border Background="{Binding Name, Converter={StaticResource CategoryToPastelBackgroundConverter}}" 
+                                                CornerRadius="5" Margin="0,3" Padding="5">
+                                            <Expander Background="Transparent" Loaded="GroupExpander_Loaded"
+                                                      HorizontalContentAlignment="Stretch">
+                                                <Expander.Header>
+                                                    <Grid HorizontalAlignment="Stretch">
+                                                        <Grid.ContextMenu>
+                                                            <ContextMenu>
+                                                                <MenuItem Header="➕ Dodaj sprzęt do tej kategorii" Click="CategoryAddEquipment_Click"/>
+                                                            </ContextMenu>
+                                                        </Grid.ContextMenu>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="{Binding Data.BrandColumnOffset, Source={StaticResource ViewProxy}}"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" Foreground="#333"/>
+                                                            <TextBlock Text="{Binding Items, Converter={StaticResource GroupItemsToSummaryConverter}}" FontWeight="Normal" FontSize="12" Foreground="#666" Margin="5,0"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="1"
+                                                                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                                   Text="{Binding Name, Converter={StaticResource CategoryNameToColumnLabelsConverter}}"
+                                                                   FontSize="11" FontStyle="Italic" Foreground="#777">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                    <Style.Triggers>
+                                                                        <Trigger Property="Text" Value="">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </Trigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Grid>
+                                                </Expander.Header>
+                                                <ItemsPresenter Margin="15,5,0,5"/>
+                                            </Expander>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+            
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Nr Inwentarzowy" SortMemberPath="InventoryNumberSortKey" Width="Auto" MinWidth="120" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="2,0">
+                                <!-- Wskaźnik braku nr inwentarzowego: kółko z "?" -->
+                                <Border Width="16" Height="16" Background="#E65100" CornerRadius="8"
+                                        VerticalAlignment="Center" Margin="0,0,5,0"
+                                        ToolTip="Brak numeru inwentarzowego — nr nieczytelny lub nienadany">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding NoInventoryNumber}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="?" Foreground="White" FontWeight="Bold" FontSize="11"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="{Binding InventoryNumber}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding NoInventoryNumber}" Value="True">
+                                                    <Setter Property="Text" Value="brak nr"/>
+                                                    <Setter Property="Foreground" Value="#E65100"/>
+                                                    <Setter Property="FontStyle" Value="Italic"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Nazwa" Width="Auto" MinWidth="120" SortMemberPath="Name">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                <!-- Zielona kropka: ma aktywne zdarzenia -->
+                                <Ellipse Width="8" Height="8" Fill="#4CAF50" Margin="5,0,0,0" VerticalAlignment="Center"
+                                         ToolTip="Ma aktywne zdarzenia">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasActiveEvents}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <!-- Szara kropka: ma tylko archiwalne zdarzenia -->
+                                <Ellipse Width="8" Height="8" Fill="#9E9E9E" Margin="5,0,0,0" VerticalAlignment="Center"
+                                         ToolTip="Ma tylko archiwalne zdarzenia">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasArchivedEventsOnly}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Lokalizacja" Binding="{Binding Location.Name}" Width="Auto" MinWidth="90" IsReadOnly="True"/>
+                <DataGridTextColumn SortMemberPath="Brand" Width="Auto" MinWidth="60">
+                    <DataGridTextColumn.Binding>
+                        <Binding Path="Brand"/>
+                    </DataGridTextColumn.Binding>
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding Data.BrandColumnHeader, Source={StaticResource Proxy}}"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn SortMemberPath="Model" Width="Auto" MinWidth="60">
+                    <DataGridTextColumn.Binding>
+                        <Binding Path="Model"/>
+                    </DataGridTextColumn.Binding>
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding Data.ModelColumnHeader, Source={StaticResource Proxy}}"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn SortMemberPath="SerialNumber" Width="Auto" MinWidth="80">
+                    <DataGridTextColumn.Binding>
+                        <Binding Path="SerialNumber"/>
+                    </DataGridTextColumn.Binding>
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding Data.SerialNumberColumnHeader, Source={StaticResource Proxy}}"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTemplateColumn Header="Adres IP" Width="Auto" MinWidth="70" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={StaticResource IpAddressDisplayConverter}}" Padding="2,0"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Do komputera" Width="Auto" MinWidth="90" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={StaticResource ConnectedComputerDisplayConverter}}" Padding="2,0"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Dział" Binding="{Binding Department.Name}" Width="Auto" MinWidth="80" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Gdzie?" Binding="{Binding LocationDetails}" Width="Auto" MinWidth="60"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status, Converter={StaticResource EnumToStringConverter}}" Width="Auto" MinWidth="80" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Cena zakupu" Binding="{Binding PurchasePrice, StringFormat=C}" Width="Auto" MinWidth="80"/>
+                <DataGridTextColumn Header="Data zakupu" Binding="{Binding PurchaseDate, StringFormat=dd.MM.yyyy}" Width="Auto" MinWidth="90"/>
+                <DataGridTextColumn Header="Gwarancja do" Binding="{Binding WarrantyEndDate, StringFormat=dd.MM.yyyy}" Width="Auto" MinWidth="90"/>
+                <DataGridTextColumn Header="Uwagi" Binding="{Binding Notes}" Width="*" MinWidth="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

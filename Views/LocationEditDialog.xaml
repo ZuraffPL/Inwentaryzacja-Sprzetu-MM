@@ -1,0 +1,97 @@
+<Window x:Class="InwentaryzacjaSprzetu.Views.LocationEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Edycja Lokalizacji" Height="680" Width="460"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResize" MinHeight="500" MinWidth="380">
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Nagłówek -->
+        <TextBlock Grid.Row="0" Text="Edycja lokalizacji" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <!-- Formularz -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <!-- Nazwa lokalizacji -->
+            <Label Content="Nazwa lokalizacji:" FontWeight="Bold"/>
+            <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                     Margin="0,0,0,15" Padding="4,3"/>
+            
+            <!-- Kod lokalizacji -->
+            <Label Content="Kod lokalizacji:" FontWeight="Bold"/>
+            <TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}" 
+                     Margin="0,0,0,15" MaxLength="20" Padding="4,3"
+                     ToolTip="Krótki kod lokalizacji (np. 'WAW01', 'KRK02')"/>
+            
+            <!-- Adres -->
+            <Label Content="Adres:" FontWeight="Bold"/>
+            <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" 
+                     TextWrapping="Wrap" AcceptsReturn="True"
+                     Height="60" Margin="0,0,0,15"/>
+            
+            <!-- Miasto -->
+            <Label Content="Miasto:" FontWeight="Bold"/>
+            <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}" 
+                     Margin="0,0,0,15" Padding="4,3"/>
+            
+            <!-- Kod pocztowy -->
+            <Label Content="Kod pocztowy:" FontWeight="Bold"/>
+            <TextBox Text="{Binding PostalCode, UpdateSourceTrigger=PropertyChanged}" 
+                     Margin="0,0,0,15" MaxLength="10" Padding="4,3"/>
+            
+            <!-- Opis -->
+            <Label Content="Opis:" FontWeight="Bold"/>
+            <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                     TextWrapping="Wrap" AcceptsReturn="True"
+                     Height="60" Margin="0,0,0,15"/>
+
+            <!-- Kod pawilonu -->
+            <Label Content="Kod pawilonu:" FontWeight="Bold"/>
+            <TextBox Text="{Binding PavilionCode, UpdateSourceTrigger=PropertyChanged}" 
+                     Margin="0,0,0,15" MaxLength="5" Padding="4,3"
+                     CharacterCasing="Upper"
+                     ToolTip="Alfanumeryczny kod pawilonu, max 5 znaków (np. MZ87, WAR1)"/>
+
+            <!-- Kraj -->
+            <Label Content="Kraj:" FontWeight="Bold"/>
+            <ComboBox SelectedValue="{Binding CountryCode, UpdateSourceTrigger=PropertyChanged}"
+                      SelectedValuePath="Tag"
+                      Margin="0,0,0,15" Height="26"
+                      ToolTip="Kraj, w którym znajduje się pawilon">
+                <ComboBoxItem Content="(brak)" Tag="{x:Null}"/>
+                <ComboBoxItem Content="PL – Polska" Tag="PL"/>
+                <ComboBoxItem Content="SK – Słowacja" Tag="SK"/>
+                <ComboBoxItem Content="CZ – Czechy" Tag="CZ"/>
+                <ComboBoxItem Content="RO – Rumunia" Tag="RO"/>
+                <ComboBoxItem Content="HU – Węgry" Tag="HU"/>
+                <ComboBoxItem Content="HR – Chorwacja" Tag="HR"/>
+            </ComboBox>
+
+            <!-- Aktywna -->
+            <CheckBox Content="Aktywna (zakładka pawilonu widoczna w widoku Sprzęt)"
+                      IsChecked="{Binding IsActive, UpdateSourceTrigger=PropertyChanged}"
+                      Margin="0,0,0,15" FontWeight="Normal"
+                      ToolTip="Odznaczenie ukrywa zakładkę tego pawilonu w widoku Sprzęt"/>
+
+            <!-- Komunikat walidacji -->
+            <TextBlock Text="{Binding ValidationMessage}" Foreground="Red" 
+                       Margin="0,0,0,10"/>
+        </StackPanel>
+        </ScrollViewer>
+
+        <!-- Przyciski -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Zapisz" Width="80" Height="30" Margin="0,0,10,0" 
+                    Command="{Binding SaveCommand}" IsDefault="True"/>
+            <Button Content="Anuluj" Width="80" Height="30" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
