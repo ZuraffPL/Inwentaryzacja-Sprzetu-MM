@@ -19,6 +19,7 @@ namespace InwentaryzacjaSprzetu.Database
         public DbSet<InventoryEvent> InventoryEvents { get; set; }
         public DbSet<ChangeLog> ChangeLogs { get; set; }
         public DbSet<EventAttachment> EventAttachments { get; set; }
+        public DbSet<Alert> Alerts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -104,6 +105,25 @@ namespace InwentaryzacjaSprzetu.Database
                     .WithMany(e => e.Attachments)
                     .HasForeignKey(a => a.EventId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Konfiguracja Alert
+            modelBuilder.Entity<Alert>(entity =>
+            {
+                entity.HasKey(a => a.Id);
+                entity.ToTable("alerts");
+                entity.Property(a => a.Name).IsRequired();
+                entity.Property(a => a.Content).IsRequired();
+
+                entity.HasOne(a => a.Equipment)
+                    .WithMany()
+                    .HasForeignKey(a => a.EquipmentId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(a => a.Category)
+                    .WithMany()
+                    .HasForeignKey(a => a.CategoryId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             // Konfiguracja ChangeLog

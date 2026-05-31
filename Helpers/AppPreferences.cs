@@ -42,6 +42,12 @@ namespace InwentaryzacjaSprzetu.Helpers
         /// <summary>Folder przechowywania załączników zdarzeń. Null lub pusty = niezdefiniowany (użytkownik zostanie zapytany przy pierwszym użyciu).</summary>
         public string? AttachmentsFolder { get; set; }
 
+        /// <summary>
+        /// Data (format yyyy-MM-dd), w której użytkownik kliknął „Nie pokazuj dziś ponownie"
+        /// w oknie startowych powiadomień. Jeśli zgodna z bieżącą datą — okno nie pojawi się przy uruchomieniu.
+        /// </summary>
+        public string? AlertStartupDismissedDate { get; set; }
+
         public static AppPreferences Load()
         {
             try

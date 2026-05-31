@@ -88,6 +88,25 @@ Lub ręcznie — najpierw opublikuj aplikację, a następnie skompiluj skrypt `i
 - Pasek statusu z informacjami o wybranym sprzęcie
 - Zmiana szerokości kolumn (auto-width)
 
+### Powiadomienia
+- **System alertów** z datą wyzwolenia — przypisanie do konkretnego sprzętu, kategorii lub ogólne
+- Pomarańczowy **baner** widoczny na każdym widoku gdy są aktywne powiadomienia — kliknięcie przechodzi do widoku Powiadomień
+- Czerwony **licznik** na przycisku Powiadomienia w pasku narzędzi
+- **Okno startowe** przy uruchomieniu — lista wyzwolonych alertów z kartami, opcja „Nie pokazuj dziś ponownie"
+- Widok Powiadomień: aktywne (żółte wiersze = wyzwolone) + rozwijany panel archiwum; CRUD + archiwizacja
+- **Timer co 30 minut** automatycznie odświeża listę powiadomień
+
+### Tray systemowy
+- Minimalizacja okna chowa aplikację do **zasobnika systemowego** (system tray)
+- Ikona traya z dzwonkiem — zmienia się na czerwoną wersję gdy są aktywne alerty
+- Menu kontekstowe traya: Pokaż okno / Wyjście; podwójne kliknięcie przywraca okno
+- Tooltip traya informuje o liczbie aktywnych powiadomień
+
+### Eksport / Import CSV
+- **Eksport do CSV** (menu Plik → Eksport do CSV) — eksportuje aktualnie przefiltrowaną listę sprzętu
+- **Import z CSV** (menu Plik → Import z CSV) — importuje sprzęt z pliku CSV ze szczegółowym raportem błędów
+- Format: separator `;`, kodowanie UTF-8 z BOM (kompatybilny z polskim Excel), RFC 4180
+
 ## Stack technologiczny
 
 | Element | Wersja |
@@ -132,6 +151,16 @@ Struktura plików projektu: [STRUKTURA.md](STRUKTURA.md)
 [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE)
 
 ## Historia wersji
+
+### v1.9.6
+- System powiadomień (alertów) z datą wyzwolenia — przypisanie do sprzętu, kategorii lub ogólne
+- Pomarańczowy baner + licznik w toolbarze sygnalizujące aktywne powiadomienia
+- Okno startowe przy uruchomieniu z listą aktywnych alertów i opcją „Nie pokazuj dziś ponownie"
+- Widok Powiadomień: lista aktywnych (żółte wiersze = wyzwolone) + archiwum; CRUD + archiwizacja
+- Timer co 30 minut automatycznie odświeża listę powiadomień
+- Minimalizacja do zasobnika systemowego (tray) — programatyczna ikona dzwonka, zmienia się gdy są alerty
+- Menu kontekstowe traya: Pokaż okno / Wyjście
+- Eksport i import sprzętu do/z pliku CSV (menu Plik) z raportem błędów
 
 ### v1.9.4
 - Obsługa sprzętu bez numeru inwentarzowego — checkbox „Brak nr inwentarzowego" w oknie dodawania/edycji sprzętu

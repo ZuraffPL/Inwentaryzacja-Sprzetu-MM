@@ -1,0 +1,158 @@
+<Window x:Class="InwentaryzacjaSprzetu.Views.AlertsStartupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Aktywne powiadomienia"
+        Width="640" Height="560"
+        MinWidth="480" MinHeight="360"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        ResizeMode="CanResize">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Kolory nagłówka: ciemny bursztyn — #7A3E00 
+         Kolor akcentu wyzwolonego alertu: #E67E00
+         ═══════════════════════════════════════════════════════════════ -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- nagłówek -->
+            <RowDefinition Height="*"/>     <!-- lista alertów -->
+            <RowDefinition Height="Auto"/>  <!-- dolny pasek -->
+        </Grid.RowDefinitions>
+
+        <!-- ═══ NAGŁÓWEK ═══════════════════════════════════════════════ -->
+        <Border Grid.Row="0" Background="#7A3E00" Padding="20,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Ikona dzwonka -->
+                <Border Grid.Column="0" Background="#E67E00" CornerRadius="50"
+                        Width="52" Height="52" Margin="0,0,16,0">
+                    <TextBlock Text="🔔" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Tytuł + opis -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="Aktywne powiadomienia" FontSize="18" FontWeight="Bold"
+                               Foreground="White"/>
+                    <TextBlock x:Name="SubtitleText" FontSize="12" Foreground="#FFCC88"
+                               Margin="0,3,0,0"/>
+                </StackPanel>
+
+                <!-- Licznik (badge) -->
+                <Border Grid.Column="2" Background="#E67E00" CornerRadius="6"
+                        Padding="14,6" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="CounterText" FontSize="22" FontWeight="Bold"
+                                   Foreground="White" VerticalAlignment="Center"/>
+                        <TextBlock Text=" ⚠" FontSize="18" Foreground="White"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ═══ LISTA ALERTÓW ═══════════════════════════════════════════ -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      Background="#FFFDF5">
+            <ItemsControl x:Name="AlertsList" Margin="12,12,12,4">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <!-- Karta pojedynczego alertu -->
+                        <Border Margin="0,0,0,10" CornerRadius="6"
+                                BorderThickness="0,0,0,0"
+                                Background="White">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#E67E00" BlurRadius="6"
+                                                  Opacity="0.18" ShadowDepth="1"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="5"/>   <!-- kolorowa listwa -->
+                                    <ColumnDefinition Width="*"/>   <!-- treść -->
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Listwa boczna -->
+                                <Border Grid.Column="0" Background="#E67E00" CornerRadius="6,0,0,6"/>
+
+                                <!-- Treść karty -->
+                                <StackPanel Grid.Column="1" Margin="14,12,14,12">
+
+                                    <!-- Wiersz 1: Nazwa + data -->
+                                    <DockPanel>
+                                        <!-- Data wyzwolenia (badge po prawej) -->
+                                        <Border DockPanel.Dock="Right" Background="#FFF0D0"
+                                                BorderBrush="#E67E00" BorderThickness="1"
+                                                CornerRadius="4" Padding="7,2" VerticalAlignment="Center"
+                                                Margin="8,0,0,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📅 " FontSize="11"/>
+                                                <TextBlock Text="{Binding TriggerDate, StringFormat=dd.MM.yyyy}"
+                                                           FontSize="11" FontWeight="SemiBold"
+                                                           Foreground="#7A3E00"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Nazwa alertu -->
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold"
+                                                   FontSize="14" Foreground="#3A1A00"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center"/>
+                                    </DockPanel>
+
+                                    <!-- Wiersz 2: Dotyczy (sprzęt / kategoria / ogólne) -->
+                                    <TextBlock Text="{Binding TargetDescription}"
+                                               FontSize="11" Foreground="#888"
+                                               Margin="0,4,0,0"/>
+
+                                    <!-- Separator -->
+                                    <Border Height="1" Background="#F0E0C0" Margin="0,8,0,8"/>
+
+                                    <!-- Wiersz 3: Treść powiadomienia -->
+                                    <TextBlock Text="{Binding Content}"
+                                               FontSize="12" Foreground="#444"
+                                               TextWrapping="Wrap" LineHeight="18"/>
+
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- ═══ DOLNY PASEK ══════════════════════════════════════════════ -->
+        <Border Grid.Row="2" Background="#F5F0E8"
+                BorderBrush="#E0C090" BorderThickness="0,1,0,0"
+                Padding="16,10">
+            <DockPanel>
+                <!-- Przyciski po prawej -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button x:Name="NavigateButton"
+                            Content="🔔  Otwórz Powiadomienia"
+                            Width="160" Height="30" Margin="0,0,10,0"
+                            Background="#E67E00" Foreground="White"
+                            BorderBrush="#B86000" FontWeight="SemiBold"
+                            Click="NavigateButton_Click"/>
+                    <Button Content="Zamknij"
+                            Width="80" Height="30"
+                            Click="CloseButton_Click" IsDefault="True"
+                            Background="#F0F0F0" BorderBrush="#CCCCCC"/>
+                </StackPanel>
+
+                <!-- Checkbox po lewej -->
+                <CheckBox x:Name="DontShowTodayCheckbox"
+                          Content="Nie pokazuj ponownie dziś"
+                          VerticalAlignment="Center"
+                          FontSize="12"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,152 @@
+<Window x:Class="InwentaryzacjaSprzetu.Views.AlertEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding DialogTitle}"
+        Height="680" Width="680"
+        MinHeight="580" MinWidth="560"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,8,0,3"/>
+        </Style>
+        <Style x:Key="HintStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#777"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style x:Key="InputStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Nagłówek -->
+        <Border Grid.Row="0" Background="#F0F4FF" CornerRadius="4" Padding="12,8" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="🔔" FontSize="18" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="{Binding DialogTitle}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Formularz -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- Zakres powiadomienia -->
+                <GroupBox Header="Zakres powiadomienia" Padding="10,6,10,10" Margin="0,0,0,8">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
+                            <RadioButton Content="📦  Konkretny sprzęt"
+                                         IsChecked="{Binding ForEquipment}"
+                                         Margin="0,0,24,0" VerticalAlignment="Center"/>
+                            <RadioButton Content="📂  Cała kategoria"
+                                         IsChecked="{Binding ForCategory}"
+                                         Margin="0,0,24,0" VerticalAlignment="Center"/>
+                            <RadioButton Content="🔔  Ogólne"
+                                         IsChecked="{Binding ForGeneral}"
+                                         VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Panel wyboru sprzętu -->
+                        <StackPanel Visibility="{Binding ForEquipment, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Style="{StaticResource LabelStyle}" Text="Szukaj sprzętu (nr, nazwa, pawilon):" Margin="0,0,0,3"/>
+                            <TextBox Text="{Binding EquipmentSearch, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource InputStyle}" Height="28" Margin="0,0,0,6"/>
+                            <TextBlock Style="{StaticResource LabelStyle}" Text="Wybierz sprzęt:" Margin="0,0,0,3"/>
+                            <ComboBox ItemsSource="{Binding FilteredEquipment}"
+                                      SelectedItem="{Binding SelectedEquipment}"
+                                      Height="30" BorderBrush="#CCCCCC" BorderThickness="1">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock>
+                                            <Run FontWeight="SemiBold" Text="{Binding InventoryNumber}"/>
+                                            <Run Text=" — "/>
+                                            <Run Text="{Binding Name}"/>
+                                            <Run Foreground="#666" Text=" ("/>
+                                            <Run Foreground="#666" Text="{Binding Location.Name}"/>
+                                            <Run Foreground="#666" Text=")"/>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- Panel wyboru kategorii -->
+                        <StackPanel Visibility="{Binding ForCategory, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Style="{StaticResource LabelStyle}" Text="Wybierz kategorię:" Margin="0,0,0,3"/>
+                            <ComboBox ItemsSource="{Binding AllCategories}"
+                                      SelectedItem="{Binding SelectedCategory}"
+                                      Height="30" BorderBrush="#CCCCCC" BorderThickness="1">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- Info dla ogólnego -->
+                        <TextBlock Visibility="{Binding ForGeneral, Converter={StaticResource BoolToVis}}"
+                                   Text="Powiadomienie ogólne — bez przypisania do sprzętu lub kategorii."
+                                   Foreground="#555" FontStyle="Italic" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Nazwa -->
+                <TextBlock Style="{StaticResource LabelStyle}" Text="Nazwa powiadomienia *"/>
+                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource InputStyle}" Height="28"/>
+
+                <!-- Opis -->
+                <TextBlock Style="{StaticResource LabelStyle}" Text="Opis wewnętrzny (opcjonalny)"/>
+                <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource InputStyle}" Height="52"
+                         TextWrapping="Wrap" AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"/>
+
+                <!-- Data wyzwolenia -->
+                <TextBlock Style="{StaticResource LabelStyle}" Text="Data wyzwolenia *"/>
+                <TextBlock Style="{StaticResource HintStyle}"
+                           Text="Od tej daty powiadomienie będzie widoczne w aplikacji."/>
+                <DatePicker SelectedDate="{Binding TriggerDate}" Height="28"
+                            BorderBrush="#CCCCCC" BorderThickness="1"/>
+
+                <!-- Treść -->
+                <TextBlock Style="{StaticResource LabelStyle}" Text="Treść powiadomienia *"/>
+                <TextBlock Style="{StaticResource HintStyle}"
+                           Text="Tekst wyświetlany użytkownikowi gdy powiadomienie jest aktywne."/>
+                <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource InputStyle}" Height="90"
+                         TextWrapping="Wrap" AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"/>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Przyciski -->
+        <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Margin="0,12,0,0" Padding="0,12,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Anuluj" Command="{Binding CancelCommand}"
+                        Width="90" Height="32" Margin="0,0,10,0"
+                        Background="#F0F0F0" BorderBrush="#CCCCCC"/>
+                <Button Content="💾  Zapisz" Command="{Binding SaveCommand}"
+                        Width="100" Height="32"
+                        Background="#4472C4" Foreground="White" BorderBrush="#2E5FA3"
+                        FontWeight="SemiBold"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

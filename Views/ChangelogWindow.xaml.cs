@@ -32,9 +32,29 @@ namespace InwentaryzacjaSprzetu.Views
         {
             new ChangelogEntry
             {
+                Version = "v1.9.6",
+                Date = "czerwiec 2026",
+                IsLatest = true,
+                Changes = new()
+                {
+                    "System powiadomień (alertów) — tworzenie powiadomień z datą wyzwolenia przypisanych do konkretnego sprzętu, kategorii lub ogólnych",
+                    "Powiadomienia wyświetlane jako pomarańczowy baner pod paskiem narzędzi — kliknięcie przenosi do widoku Powiadomień",
+                    "Przycisk Powiadomienia w pasku narzędzi z czerwonym licznikiem aktywnych alertów",
+                    "Okno startowe przy uruchomieniu — lista aktywnych powiadomień z kartami, opcja 'Nie pokazuj dziś ponownie'",
+                    "Widok Powiadomień: lista aktywnych (żółte wiersze dla wyzwolonych) + rozwijany panel archiwum",
+                    "Funkcje: Dodaj / Edytuj / Archiwizuj / Usuń powiadomienie przez toolbar widoku",
+                    "Timer co 30 minut automatycznie odświeża listę powiadomień",
+                    "Minimalizacja do zasobnika systemowego (tray) — okno znika z paska zadań, aplikacja działa w tle",
+                    "Ikona traya z dzwonkiem — zmienia się na czerwoną z '!' gdy są aktywne powiadomienia",
+                    "Eksport i import sprzętu do/z pliku CSV (menu Plik → Eksport do CSV / Import z CSV)",
+                    "CSV: separator ;, kodowanie UTF-8 z BOM (kompatybilny z polskim Excel), obsługa cudzysłowów RFC 4180",
+                }
+            },
+            new ChangelogEntry
+            {
                 Version = "v1.9.4",
                 Date = "maj 2026",
-                IsLatest = true,
+                IsLatest = false,
                 Changes = new()
                 {
                     "Obsługa sprzętu bez numeru inwentarzowego — checkbox 'Brak nr inwentarzowego' w oknie dodawania/edycji sprzętu",

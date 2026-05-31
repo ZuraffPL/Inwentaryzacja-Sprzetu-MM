@@ -164,6 +164,7 @@ namespace InwentaryzacjaSprzetu
                     services.AddScoped<IDepartmentService, DepartmentService>();
                     services.AddScoped<IInventoryEventService, InventoryEventService>();
                     services.AddScoped<IEventAttachmentService, EventAttachmentService>();
+                    services.AddScoped<IAlertService, AlertService>();
 
                     // ViewModels
                     services.AddTransient<MainWindowViewModel>();
@@ -175,6 +176,7 @@ namespace InwentaryzacjaSprzetu
                     services.AddTransient<DepartmentEditViewModel>();
                     services.AddTransient<EventEditViewModel>();
                     services.AddTransient<EventAttachmentsViewModel>();
+                    services.AddTransient<AlertEditViewModel>();
 
                     // Windows
                     services.AddSingleton<MainWindow>();

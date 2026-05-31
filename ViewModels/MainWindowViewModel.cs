@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,8 +58,12 @@ namespace InwentaryzacjaSprzetu.ViewModels
         private readonly ILocationService _locationService;
         private readonly IDepartmentService _departmentService;
         private readonly IInventoryEventService _eventService;
+        private readonly IAlertService _alertService;
         private readonly IServiceProvider _serviceProvider;
         private AppPreferences _prefs = AppPreferences.Load();
+
+        // Timer sprawdzający nowo wyzwolone alerty co 30 minut
+        private DispatcherTimer? _alertCheckTimer;
 
         [ObservableProperty]
         private string _currentView = "Equipment";
@@ -322,6 +327,30 @@ namespace InwentaryzacjaSprzetu.ViewModels
         public ObservableCollection<InventoryEvent> ActiveEvents { get; } = new();
         public ObservableCollection<InventoryEvent> ArchivedEvents { get; } = new();
 
+        // ===== Alerty / powiadomienia =====
+        /// <summary>Niezarchiwizowane alerty (aktywne i zaplanowane).</summary>
+        public ObservableCollection<Models.Alert> ActiveAlerts { get; } = new();
+        /// <summary>Zarchiwizowane alerty.</summary>
+        public ObservableCollection<Models.Alert> ArchivedAlerts { get; } = new();
+
+        [ObservableProperty]
+        private Models.Alert? _selectedAlert;
+
+        /// <summary>True gdy co najmniej jeden alert ma TriggerDate &lt;= dziś (wyświetla baner).</summary>
+        public bool HasTriggeredAlerts => ActiveAlerts.Any(a => a.IsTriggered);
+        /// <summary>Liczba wyzwolonych alertów (do wyświetlenia w banerze).</summary>
+        public int TriggeredAlertCount => ActiveAlerts.Count(a => a.IsTriggered);
+
+        private void NotifyAlertCountsChanged()
+        {
+            OnPropertyChanged(nameof(HasTriggeredAlerts));
+            OnPropertyChanged(nameof(TriggeredAlertCount));
+            AlertCountChanged?.Invoke(TriggeredAlertCount);
+        }
+
+        /// <summary>Wywoływane gdy zmienia się liczba wyzwolonych alertów — MainWindow nasłuchuje dla traya.</summary>
+        public event Action<int>? AlertCountChanged;
+
         // Liczniki sprzętu w status barze (przeliczane przy każdej zmianie kolekcji)
         public int ReserveDepartmentCount   => Equipment.Count(e => e.Department?.Code == "REZ");
         public int StatusActiveCount        => Equipment.Count(e => e.Status == Models.EquipmentStatus.Active);
@@ -364,6 +393,7 @@ namespace InwentaryzacjaSprzetu.ViewModels
             ILocationService locationService,
             IDepartmentService departmentService,
             IInventoryEventService eventService,
+            IAlertService alertService,
             IServiceProvider serviceProvider)
         {
             _equipmentService = equipmentService;
@@ -371,9 +401,11 @@ namespace InwentaryzacjaSprzetu.ViewModels
             _locationService = locationService;
             _departmentService = departmentService;
             _eventService = eventService;
+            _alertService = alertService;
             _serviceProvider = serviceProvider;
 
             Equipment.CollectionChanged += (_, _) => NotifyEquipmentCountsChanged();
+            ActiveAlerts.CollectionChanged += (_, _) => NotifyAlertCountsChanged();
 
             // Przywróć zapisany stan filtra statusu
             foreach (var item in StatusFilterItems)
@@ -381,6 +413,11 @@ namespace InwentaryzacjaSprzetu.ViewModels
                 item.IsSelected = _prefs.EquipmentFilterStatusValues.Contains((int)item.Status);
                 item.PropertyChanged += OnFilterItemPropertyChanged;
             }
+
+            // Timer sprawdzający alerty co 30 minut
+            _alertCheckTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(30) };
+            _alertCheckTimer.Tick += async (s, e) => await LoadAlertsAsync();
+            _alertCheckTimer.Start();
         }
 
         private void NotifyEquipmentCountsChanged()
@@ -404,6 +441,7 @@ namespace InwentaryzacjaSprzetu.ViewModels
                 await LoadLocationsAsync();
                 await LoadDepartmentsAsync();
                 await LoadEventsAsync();
+                await LoadAlertsAsync();
 
                 // Jeśli przywrócono filtry statusu (ustawione w konstruktorze przed ładowaniem danych),
                 // wymusz odświeżenie widoku — Equipment był ładowany zanim CVS filtr miał szansę zadziałać
@@ -1661,6 +1699,160 @@ namespace InwentaryzacjaSprzetu.ViewModels
             }
         }
 
+        // ===== PLIK: EKSPORT / IMPORT CSV =====
+
+        [RelayCommand]
+        private async Task ExportEquipmentToCsv()
+        {
+            try
+            {
+                // Zastosuj te same filtry co CollectionViewSource (analogicznie do ExportEquipmentToPdf)
+                var activeDepts    = DepartmentFilterItems.Where(d => d.IsSelected).ToList();
+                var activeStatuses = StatusFilterItems.Where(s => s.IsSelected).ToList();
+                var activeCats     = CategoryFilterItems.Where(c => c.IsSelected).ToList();
+
+                IEnumerable<Equipment> source = Equipment;
+
+                if (activeDepts.Count > 0)
+                    source = source.Where(e => activeDepts.Any(d => e.DepartmentId == d.Department?.Id));
+                if (activeStatuses.Count > 0)
+                    source = source.Where(e => activeStatuses.Any(s => e.Status == s.Status));
+                if (activeCats.Count > 0)
+                    source = source.Where(e => activeCats.Any(c => e.CategoryId == c.Category.Id));
+
+                var exportList = source.ToList();
+
+                if (exportList.Count == 0)
+                {
+                    MessageBox.Show("Brak pozycji sprzętu do eksportu dla wybranych filtrów.",
+                        "Eksport CSV", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var dialog = new SaveFileDialog
+                {
+                    Title      = "Zapisz plik CSV",
+                    Filter     = "Plik CSV (*.csv)|*.csv|Wszystkie pliki (*.*)|*.*",
+                    FileName   = $"inwentaryzacja_{DateTime.Now:yyyyMMdd_HHmm}.csv",
+                    DefaultExt = ".csv",
+                    AddExtension = true
+                };
+
+                if (dialog.ShowDialog() != true) return;
+
+                StatusMessage = "Eksportowanie do CSV...";
+                var csv = Services.CsvEquipmentService.Export(exportList);
+
+                // UTF-8 z BOM — Excel otwiera poprawnie bez ręcznej zmiany kodowania
+                await File.WriteAllTextAsync(dialog.FileName, csv, new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+
+                StatusMessage = $"Eksport CSV: {Path.GetFileName(dialog.FileName)} ({exportList.Count} rekordów)";
+
+                var open = MessageBox.Show(
+                    $"Plik CSV zapisany pomyślnie.\n{dialog.FileName}\n\nCzy otworzyć plik?",
+                    "Eksport CSV", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                if (open == MessageBoxResult.Yes)
+                    System.Diagnostics.Process.Start(
+                        new System.Diagnostics.ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Błąd eksportu CSV: {ex.Message}";
+                MessageBox.Show($"Nie udało się wygenerować pliku CSV:\n\n{ex.Message}",
+                    "Błąd eksportu CSV", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        [RelayCommand]
+        private async Task ImportEquipmentFromCsv()
+        {
+            try
+            {
+                var dialog = new OpenFileDialog
+                {
+                    Title      = "Wybierz plik CSV do importu",
+                    Filter     = "Plik CSV (*.csv)|*.csv|Wszystkie pliki (*.*)|*.*",
+                    DefaultExt = ".csv"
+                };
+
+                if (dialog.ShowDialog() != true) return;
+
+                StatusMessage = "Importowanie z CSV...";
+                var csv = await File.ReadAllTextAsync(dialog.FileName, System.Text.Encoding.UTF8);
+
+                var categories  = await _categoryService.GetAllAsync();
+                var locations   = await _locationService.GetAllIncludingInactiveAsync();
+                var departments = await _departmentService.GetAllAsync();
+
+                var result = Services.CsvEquipmentService.Import(csv, categories, locations, departments);
+
+                if (result.Success.Count == 0 && result.Errors.Count == 0)
+                {
+                    MessageBox.Show("Plik CSV jest pusty lub nie zawiera wierszy danych.",
+                        "Import CSV", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                if (result.Success.Count == 0)
+                {
+                    var errorPreview = string.Join("\n", result.Errors.Take(20));
+                    if (result.Errors.Count > 20) errorPreview += $"\n… i {result.Errors.Count - 20} więcej";
+                    MessageBox.Show($"Import nie powiódł się — wszystkie wiersze zawierają błędy:\n\n{errorPreview}",
+                        "Import CSV — błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                string confirmMsg = $"Przygotowano {result.Success.Count} rekordów do importu.";
+                if (result.Errors.Count > 0)
+                    confirmMsg += $"\nPominięto {result.Errors.Count} wierszy z błędami (np. nieznana kategoria / lokalizacja).";
+                confirmMsg += "\n\nCzy chcesz kontynuować?";
+
+                if (MessageBox.Show(confirmMsg, "Import CSV", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                    return;
+
+                int added = 0;
+                var saveErrors = new List<string>();
+                foreach (var item in result.Success)
+                {
+                    try
+                    {
+                        await _equipmentService.AddAsync(item);
+                        added++;
+                    }
+                    catch (Exception ex)
+                    {
+                        saveErrors.Add($"'{item.Name}': {ex.Message}");
+                    }
+                }
+
+                await LoadEquipmentAsync();
+
+                var allErrors = result.Errors.Concat(saveErrors).ToList();
+                if (allErrors.Count > 0)
+                {
+                    var preview = string.Join("\n", allErrors.Take(15));
+                    if (allErrors.Count > 15) preview += $"\n… i {allErrors.Count - 15} więcej";
+                    MessageBox.Show(
+                        $"Import zakończony. Dodano: {added} rekordów.\nPominięto/błędy: {allErrors.Count}\n\n{preview}",
+                        "Import CSV — podsumowanie", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else
+                {
+                    MessageBox.Show($"Import zakończony pomyślnie. Dodano: {added} rekordów.",
+                        "Import CSV", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+
+                StatusMessage = $"Import CSV: dodano {added} rekordów";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Błąd importu CSV: {ex.Message}";
+                MessageBox.Show($"Nie udało się zaimportować pliku CSV:\n\n{ex.Message}",
+                    "Błąd importu CSV", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         // ===== TOOLS: EXPORT / IMPORT DATABASE =====
 
         [RelayCommand]
@@ -2067,6 +2259,121 @@ namespace InwentaryzacjaSprzetu.ViewModels
                 StatusMessage = $"Błąd importu załączników: {ex.Message}";
                 await _serviceProvider.GetRequiredService<ILoggingService>().LogErrorAsync($"[ImportAttachmentsZip] {ex.Message}", ex);
                 MessageBox.Show($"Błąd podczas importu załączników:\n{ex.Message}",
+                    "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // ===== ALERTY / POWIADOMIENIA =====
+
+        [RelayCommand]
+        private void ShowAlertsView()
+        {
+            CurrentView = "Alerts";
+        }
+
+        [RelayCommand]
+        private async Task LoadAlerts()
+        {
+            try
+            {
+                var active   = await _alertService.GetActiveAlertsAsync();
+                var archived = await _alertService.GetArchivedAlertsAsync();
+
+                ActiveAlerts.Clear();
+                foreach (var a in active)   ActiveAlerts.Add(a);
+
+                ArchivedAlerts.Clear();
+                foreach (var a in archived) ArchivedAlerts.Add(a);
+            }
+            catch (Exception ex)
+            {
+                await _serviceProvider.GetRequiredService<ILoggingService>()
+                    .LogErrorAsync($"[LoadAlerts] {ex.Message}", ex);
+            }
+        }
+
+        private async Task LoadAlertsAsync() => await LoadAlertsCommand.ExecuteAsync(null);
+
+        [RelayCommand]
+        private void ClearAlertSelection()
+        {
+            SelectedAlert = null;
+        }
+
+        [RelayCommand]
+        private async Task AddAlert()
+        {
+            var viewModel = _serviceProvider.GetRequiredService<AlertEditViewModel>();
+            await viewModel.InitializeAsync();
+            var dialog = new Views.AlertEditDialog(viewModel) { Owner = Application.Current.MainWindow };
+            if (dialog.ShowDialog() == true)
+                await LoadAlertsAsync();
+        }
+
+        [RelayCommand]
+        private async Task EditAlert()
+        {
+            if (SelectedAlert == null) return;
+            var alert = await _alertService.GetByIdAsync(SelectedAlert.Id);
+            if (alert == null) return;
+
+            var viewModel = _serviceProvider.GetRequiredService<AlertEditViewModel>();
+            await viewModel.InitializeAsync(alert);
+            var dialog = new Views.AlertEditDialog(viewModel) { Owner = Application.Current.MainWindow };
+            if (dialog.ShowDialog() == true)
+                await LoadAlertsAsync();
+        }
+
+        [RelayCommand]
+        private async Task ArchiveAlert()
+        {
+            if (SelectedAlert == null) return;
+
+            var result = MessageBox.Show(
+                $"Czy na pewno chcesz zarchiwizować powiadomienie:\n\"{SelectedAlert.Name}\"?",
+                "Archiwizacja powiadomienia",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            var ok = await _alertService.ArchiveAsync(SelectedAlert.Id);
+            if (ok)
+            {
+                StatusMessage = "Powiadomienie zarchiwizowane.";
+                SelectedAlert = null;
+                await LoadAlertsAsync();
+            }
+            else
+            {
+                MessageBox.Show("Nie udało się zarchiwizować powiadomienia.",
+                    "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteAlert()
+        {
+            if (SelectedAlert == null) return;
+
+            var result = MessageBox.Show(
+                $"Czy na pewno chcesz USUNĄĆ powiadomienie:\n\"{SelectedAlert.Name}\"?\n\nOperacja jest nieodwracalna.",
+                "Usuwanie powiadomienia",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            var ok = await _alertService.DeleteAsync(SelectedAlert.Id);
+            if (ok)
+            {
+                StatusMessage = "Powiadomienie usunięte.";
+                SelectedAlert = null;
+                await LoadAlertsAsync();
+            }
+            else
+            {
+                MessageBox.Show("Nie udało się usunąć powiadomienia.",
                     "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

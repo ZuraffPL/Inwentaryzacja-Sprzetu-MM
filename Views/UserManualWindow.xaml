@@ -192,6 +192,20 @@
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource NavButtonStyle}"
+                            Click="NavButton_Click" Tag="sec_alerts">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔔" Margin="0,0,8,0"/>
+                            <TextBlock Text="Powiadomienia"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource NavButtonStyle}"
+                            Click="NavButton_Click" Tag="sec_csv">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📊" Margin="0,0,8,0"/>
+                            <TextBlock Text="Eksport / Import CSV"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource NavButtonStyle}"
                             Click="NavButton_Click" Tag="sec_backup">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="💾" Margin="0,0,8,0"/>
@@ -528,6 +542,69 @@
                         <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Działy"/>
                         <TextBlock Style="{StaticResource ParaStyle}"
                             Text="Dział to miejsce w sklepie, do którego przypisany jest dany sprzęt (np. AGD, Kasa, Kierownik). W oknie dodawania i edycji sprzętu pierwsza pozycja na liście działów to &quot;N/A (brak działu)&quot; — wybranie jej oznacza, że sprzęt nie jest przypisany do żadnego działu. Dział REZ (Rezerwa) oznaczony jest fioletowym kolorem tła wiersza."/>
+                    </StackPanel>
+
+                    <!-- ═══════════════════════════════════════════════ -->
+                    <!-- POWIADOMIENIA -->
+                    <!-- ═══════════════════════════════════════════════ -->
+                    <StackPanel x:Name="sec_alerts" Margin="0,0,0,28">
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="🔔  Powiadomienia"/>
+                        <Separator Margin="0,0,0,10"/>
+                        <TextBlock Style="{StaticResource ParaStyle}"
+                            Text="System powiadomień pozwala ustawić alerty z datą wyzwolenia — np. przypomnienie o legalizacji wagi w lipcu 2027 lub przeglądzie drukarek fiskalnych. Każde powiadomienie można przypisać do konkretnego sprzętu, całej kategorii lub oznaczyć jako ogólne."/>
+
+                        <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Dodawanie powiadomienia"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Widok Powiadomienia → przycisk Dodaj powiadomienie w toolbarze"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Wypełnij: Zakres (sprzęt / kategoria / ogólne), Nazwę, Datę wyzwolenia i Treść"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Data wyzwolenia — od tej daty powiadomienie jest traktowane jako aktywne (wyzwolone)"/>
+
+                        <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Sygnalizacja aktywnych powiadomień"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Pomarańczowy baner pod paskiem narzędzi — widoczny na każdym widoku gdy są wyzwolone alerty; kliknięcie otwiera widok Powiadomień"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Czerwony licznik na przycisku 🔔 Powiadomienia w pasku narzędzi"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Okno startowe przy uruchomieniu — lista aktywnych alertów wyświetlana automatycznie (można wyłączyć na dziś)"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Ikona w zasobniku systemowym (tray) — zmienia się na czerwoną gdy są aktywne powiadomienia"/>
+
+                        <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Widok Powiadomień"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Aktywne alerty: żółte wiersze = powiadomienia których data wyzwolenia już minęła"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Kolumny: Status, Nazwa, Dotyczy, Data wyzwolenia, Treść, Opis"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Toolbar: Dodaj / Edytuj / Archiwizuj / Usuń"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Archiwum zdarzeń — rozwijany panel na dole widoku z historią zarchiwizowanych alertów"/>
+
+                        <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Zasobnik systemowy (tray)"/>
+                        <TextBlock Style="{StaticResource ParaStyle}"
+                            Text="Po zminimalizowaniu okna aplikacja znika z paska zadań i działa w tle jako ikona dzwonka w zasobniku systemowym. Aby przywrócić okno: dwuklik na ikonę lub menu kontekstowe → Pokaż okno. Menu traya zawiera także opcję Wyjście."/>
+
+                        <Border Style="{StaticResource TipStyle}">
+                            <TextBlock Style="{StaticResource ParaStyle}" Margin="0"
+                                Text="💡  Powiadomienia są odświeżane automatycznie co 30 minut — nie musisz restartować aplikacji aby zobaczyć nowe alerty."/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ═══════════════════════════════════════════════ -->
+                    <!-- EKSPORT / IMPORT CSV -->
+                    <!-- ═══════════════════════════════════════════════ -->
+                    <StackPanel x:Name="sec_csv" Margin="0,0,0,28">
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="📊  Eksport / Import CSV"/>
+                        <Separator Margin="0,0,0,10"/>
+                        <TextBlock Style="{StaticResource ParaStyle}"
+                            Text="Aplikacja umożliwia wymianę danych sprzętowych z zewnętrznymi arkuszami kalkulacyjnymi przez pliki CSV."/>
+
+                        <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Eksport do CSV"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Menu Plik → Eksport do CSV"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Eksportuje aktualnie przefiltrowaną listę sprzętu (uwzględnia filtry działu, statusu, kategorii i wyszukiwania)"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Format: separator ; (średnik), kodowanie UTF-8 z BOM — kompatybilny z polską wersją Excel"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Daty w formacie yyyy-MM-dd, ceny z kropką dziesiętną"/>
+
+                        <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Import z CSV"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Menu Plik → Import z CSV"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Po wybraniu pliku wyświetlane jest podsumowanie: ile rekordów zaimportowano, ile pominięto z błędami"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Wymagane kolumny: Nazwa, Kategoria; pozostałe są opcjonalne"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Kategorie i lokalizacje muszą istnieć w aplikacji — niezgodne wartości są pomijane z komunikatem"/>
+
+                        <Border Style="{StaticResource TipStyle}">
+                            <TextBlock Style="{StaticResource ParaStyle}" Margin="0"
+                                Text="💡  Aby uzyskać poprawny szablon CSV do importu, wykonaj najpierw eksport istniejącego sprzętu — plik wynikowy pokazuje prawidłową strukturę kolumn."/>
+                        </Border>
                     </StackPanel>
 
                     <!-- ═══════════════════════════════════════════════ -->
