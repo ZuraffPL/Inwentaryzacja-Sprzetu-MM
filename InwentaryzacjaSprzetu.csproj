@@ -9,9 +9,9 @@
     <Nullable>enable</Nullable>
     <!-- CA1416: ostrzeżenia o kompatybilności platformy Windows — aplikacja jest WPF/Windows-only, ostrzeżenie nieistotne -->
     <NoWarn>CA1416</NoWarn>
-    <Version>1.9.6</Version>
-    <AssemblyVersion>1.9.6.0</AssemblyVersion>
-    <FileVersion>1.9.6.0</FileVersion>
+    <Version>1.9.8</Version>
+    <AssemblyVersion>1.9.8.0</AssemblyVersion>
+    <FileVersion>1.9.8.0</FileVersion>
     <!-- Wyłącz auto-generowanie AssemblyInfo.cs — zapobiega duplikatom atrybutów z projektem WPF _wpftmp -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>

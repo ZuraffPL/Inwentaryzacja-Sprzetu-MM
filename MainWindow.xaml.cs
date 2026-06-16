@@ -135,6 +135,13 @@ namespace InwentaryzacjaSprzetu
             window.ShowDialog();
         }
 
+        private void ConfigurationMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var prefs = AppPreferences.Load();
+            var dialog = new Views.ConfigurationDialog(prefs) { Owner = this };
+            dialog.ShowDialog();
+        }
+
         private void AboutMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var window = new AboutWindow() { Owner = this };

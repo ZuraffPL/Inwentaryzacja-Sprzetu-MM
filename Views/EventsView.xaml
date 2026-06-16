@@ -146,12 +146,17 @@
             <TabItem Header="Wszystkie" Tag="{x:Null}"/>
         </TabControl>
 
-        <!-- ===== SEKCJA: AKTYWNE + ARCHIWUM w ScrollViewer ===== -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel>
+        <!-- ===== SEKCJA: AKTYWNE + ARCHIWUM — dwa niezalezne paski scrollowania ===== -->
+        <Grid x:Name="SectionsGrid" Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>                         <!-- 0: nagłówek aktywnych -->
+                <RowDefinition x:Name="ActiveDataGridRow" Height="*"/> <!-- 1: tabela aktywnych -->
+                <RowDefinition Height="Auto"/>                         <!-- 2: nagłówek archiwum -->
+                <RowDefinition x:Name="ArchivedDataGridRow" Height="*"/> <!-- 3: tabela archiwum -->
+            </Grid.RowDefinitions>
 
             <!-- ===== SEKCJA: AKTYWNE ZDARZENIA ===== -->
-            <Border x:Name="ActiveSectionHeader" Background="#E8F5E9" BorderBrush="#A5D6A7" BorderThickness="0,0,0,1" Padding="10,5"
+            <Border x:Name="ActiveSectionHeader" Grid.Row="0" Background="#E8F5E9" BorderBrush="#A5D6A7" BorderThickness="0,0,0,1" Padding="10,5"
                     Cursor="Hand" MouseLeftButtonUp="ActiveSectionHeader_Click">
                 <DockPanel LastChildFill="False">
                     <TextBlock x:Name="ActiveSectionCollapseIcon" DockPanel.Dock="Left" Text="&#x25BC;" Foreground="#2E7D32" FontSize="10" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,5,0"/>
@@ -189,6 +194,7 @@
             </Border>
 
             <DataGrid x:Name="ActiveEventsDataGrid"
+                      Grid.Row="1"
                       ItemsSource="{Binding Source={StaticResource ActiveEventsGrouped}}"
                       SelectedItem="{Binding DataContext.SelectedEvent, RelativeSource={RelativeSource AncestorType=Window}}"
                       AutoGenerateColumns="False"
@@ -200,7 +206,7 @@
                       AlternationCount="2"
                       RowStyle="{StaticResource EventRowStyle}"
                       ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                       MouseDoubleClick="DataGrid_MouseDoubleClick"
                       PreviewMouseRightButtonDown="DataGrid_PreviewMouseRightButtonDown"
                       PreviewKeyDown="ActiveEventsDataGrid_PreviewKeyDown">
@@ -267,7 +273,7 @@
             </DataGrid>
 
             <!-- ===== SEKCJA: ARCHIWUM ZDARZEN ===== -->
-            <Border x:Name="ArchivedSectionHeader" Background="#F5F5F5" BorderBrush="#BDBDBD" BorderThickness="0,1,0,1" Padding="10,5" Margin="0,8,0,0"
+            <Border x:Name="ArchivedSectionHeader" Grid.Row="2" Background="#F5F5F5" BorderBrush="#BDBDBD" BorderThickness="0,1,0,1" Padding="10,5" Margin="0,8,0,0"
                     Cursor="Hand" MouseLeftButtonUp="ArchivedSectionHeader_Click">
                 <DockPanel LastChildFill="False">
                     <TextBlock x:Name="ArchivedSectionCollapseIcon" DockPanel.Dock="Left" Text="&#x25BC;" Foreground="#757575" FontSize="10" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,5,0"/>
@@ -305,6 +311,7 @@
             </Border>
 
             <DataGrid x:Name="ArchivedEventsDataGrid"
+                      Grid.Row="3"
                       ItemsSource="{Binding Source={StaticResource ArchivedEventsGrouped}}"
                       SelectedItem="{Binding DataContext.SelectedEvent, RelativeSource={RelativeSource AncestorType=Window}}"
                       AutoGenerateColumns="False"
@@ -317,7 +324,7 @@
                       RowStyle="{StaticResource EventRowStyle}"
                       Opacity="0.85"
                       ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                       MouseDoubleClick="DataGrid_MouseDoubleClick"
                       PreviewMouseRightButtonDown="DataGrid_PreviewMouseRightButtonDown"
                       PreviewKeyDown="ArchivedEventsDataGrid_PreviewKeyDown">
@@ -383,7 +390,6 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-            </StackPanel>
-        </ScrollViewer>
+        </Grid>
     </Grid>
 </UserControl>

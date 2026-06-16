@@ -73,7 +73,11 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
-                <MenuItem Header="_Konfiguracja"/>
+                <MenuItem Header="_Konfiguracja" Click="ConfigurationMenuItem_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="⚙️" FontSize="13"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Pomoc">
                 <MenuItem Header="_Historia wersji" Click="ChangelogMenuItem_Click">

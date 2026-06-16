@@ -470,6 +470,8 @@
                         <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Sekcje aktywne / archiwalne"/>
                         <TextBlock Style="{StaticResource ParaStyle}"
                             Text="W ka&#x17C;dym pawilonie zdarzenia podzielone s&#x105; na sekcj&#x119; aktywnych i archiwalnych. Klikni&#x119;cie w belk&#x119; nag&#x142;&#xF3;wkow&#x105; (zielon&#x105; lub szar&#x105;) zwija lub rozwija ca&#x142;&#x105; sekcj&#x119;. Przyciski &#x229F;/&#x229E; wewn&#x105;trz belki steruj&#x105; grupami zdarze&#x144; w tej sekcji."/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Ka&#x17C;da sekcja ma w&#x142;asny, niezale&#x17C;ny pasek przewijania — mo&#x17C;na jednocze&#x15B;nie przegl&#x105;da&#x107; aktywne i archiwalne zdarzenia bez wzajemnych zak&#x142;&#xF3;ce&#x144;"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Zwinięcie sekcji przez kliknięcie w nagłówek zwalnia całą przestrzeń ekranu dla drugiej sekcji"/>
                         <Border Style="{StaticResource TipStyle}">
                             <TextBlock Style="{StaticResource ParaStyle}" Margin="0"
                                 Text="💡  Skrót klawiszowy A na zaznaczonym zdarzeniu aktywnym przenosi je do archiwum bez otwierania okna edycji."/>
@@ -573,6 +575,14 @@
                         <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Zasobnik systemowy (tray)"/>
                         <TextBlock Style="{StaticResource ParaStyle}"
                             Text="Po zminimalizowaniu okna aplikacja znika z paska zadań i działa w tle jako ikona dzwonka w zasobniku systemowym. Aby przywrócić okno: dwuklik na ikonę lub menu kontekstowe → Pokaż okno. Menu traya zawiera także opcję Wyjście."/>
+
+                        <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Autostart przy starcie systemu"/>
+                        <TextBlock Style="{StaticResource ParaStyle}"
+                            Text="Aplikację można skonfigurować tak, aby uruchamiała się automatycznie po zalogowaniu do Windows. Opcja dostępna jest w menu Narzędzia → Konfiguracja (ikona ⚙️)."/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Zaznacz opcję 'Uruchamiaj aplikację przy starcie systemu Windows' i kliknij OK"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Aplikacja zostanie automatycznie uruchomiona przy następnym logowaniu — zminimalizowana do traya"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Wpis tworzony jest w rejestrze HKCU (dla bieżącego użytkownika) — nie wymaga uprawnień administratora"/>
+                        <TextBlock Style="{StaticResource BulletStyle}" Text="• Odznaczenie opcji i kliknięcie OK usuwa wpis autostartu z rejestru"/>
 
                         <Border Style="{StaticResource TipStyle}">
                             <TextBlock Style="{StaticResource ParaStyle}" Margin="0"

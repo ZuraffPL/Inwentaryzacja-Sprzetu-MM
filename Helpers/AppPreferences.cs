@@ -48,6 +48,12 @@ namespace InwentaryzacjaSprzetu.Helpers
         /// </summary>
         public string? AlertStartupDismissedDate { get; set; }
 
+        /// <summary>
+        /// Czy aplikacja ma uruchamiać się razem z systemem Windows (wpis w rejestrze HKCU Run).
+        /// Odzwierciedla tylko stan preferencji — faktyczny wpis w rejestrze zarządza AutostartHelper.
+        /// </summary>
+        public bool RunOnStartup { get; set; } = false;
+
         public static AppPreferences Load()
         {
             try

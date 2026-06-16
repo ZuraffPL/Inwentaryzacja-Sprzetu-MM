@@ -32,9 +32,23 @@ namespace InwentaryzacjaSprzetu.Views
         {
             new ChangelogEntry
             {
-                Version = "v1.9.6",
+                Version = "v1.9.8",
                 Date = "czerwiec 2026",
                 IsLatest = true,
+                Changes = new()
+                {
+                    "Niezależne przewijanie kółkiem myszy w sekcji aktywnych i archiwalnych zdarzeń — każda sekcja ma własny, oddzielny scrollbar",
+                    "Zwinięcie sekcji zdarzeń przez kliknięcie w nagłówek oddaje całą dostępną przestrzeń drugiej sekcji",
+                    "Narzędzia → Konfiguracja — okno ustawień aplikacji (ikona ⚙️ w menu)",
+                    "Opcja uruchamiania aplikacji przy starcie systemu Windows (autostart) — wpis w rejestrze HKCU, nie wymaga uprawnień administratora",
+                    "Aktualizacja pakietów NuGet: EF Core, Extensions.Hosting, Extensions.DI → wersja 10.0.8",
+                }
+            },
+            new ChangelogEntry
+            {
+                Version = "v1.9.6",
+                Date = "czerwiec 2026",
+                IsLatest = false,
                 Changes = new()
                 {
                     "System powiadomień (alertów) — tworzenie powiadomień z datą wyzwolenia przypisanych do konkretnego sprzętu, kategorii lub ogólnych",

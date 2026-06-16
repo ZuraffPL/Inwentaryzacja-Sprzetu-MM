@@ -243,13 +243,15 @@ namespace InwentaryzacjaSprzetu.Views
         {
             _activeSectionExpanded = !_activeSectionExpanded;
             ActiveEventsDataGrid.Visibility = _activeSectionExpanded ? Visibility.Visible : Visibility.Collapsed;
-            ActiveSectionCollapseIcon.Text = _activeSectionExpanded ? "▼" : "▶";
+            ActiveDataGridRow.Height = _activeSectionExpanded ? new System.Windows.GridLength(1, System.Windows.GridUnitType.Star) : new System.Windows.GridLength(0);
+            ActiveSectionCollapseIcon.Text = _activeSectionExpanded ? "▼" : "►";
         }
 
         private void ArchivedSectionHeader_Click(object sender, MouseButtonEventArgs e)
         {
             _archivedSectionExpanded = !_archivedSectionExpanded;
             ArchivedEventsDataGrid.Visibility = _archivedSectionExpanded ? Visibility.Visible : Visibility.Collapsed;
+            ArchivedDataGridRow.Height = _archivedSectionExpanded ? new System.Windows.GridLength(1, System.Windows.GridUnitType.Star) : new System.Windows.GridLength(0);
             ArchivedSectionCollapseIcon.Text = _archivedSectionExpanded ? "▼" : "▶";
         }
     }

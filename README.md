@@ -101,6 +101,7 @@ Lub ręcznie — najpierw opublikuj aplikację, a następnie skompiluj skrypt `i
 - Ikona traya z dzwonkiem — zmienia się na czerwoną wersję gdy są aktywne alerty
 - Menu kontekstowe traya: Pokaż okno / Wyjście; podwójne kliknięcie przywraca okno
 - Tooltip traya informuje o liczbie aktywnych powiadomień
+- **Autostart przy starcie systemu** — opcja w Narzędzia → Konfiguracja (wpis w rejestrze HKCU, bez uprawnień administratora)
 
 ### Eksport / Import CSV
 - **Eksport do CSV** (menu Plik → Eksport do CSV) — eksportuje aktualnie przefiltrowaną listę sprzętu
@@ -151,6 +152,13 @@ Struktura plików projektu: [STRUKTURA.md](STRUKTURA.md)
 [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE)
 
 ## Historia wersji
+
+### v1.9.8
+- Niezależne przewijanie kółkiem myszy w sekcji aktywnych i archiwalnych zdarzeń — każda sekcja ma własny scrollbar
+- Zwinięcie sekcji zdarzeń (klik w nagłówek) oddaje całą przestrzeń drugiej sekcji
+- Narzędzia → Konfiguracja — okno ustawień aplikacji z opcją uruchamiania przy starcie systemu Windows
+- Autostart: wpis w rejestrze HKCU (bez uprawnień administratora), stan odczytywany bezpośrednio z rejestru
+- Aktualizacja pakietów NuGet do wersji 10.0.8 (EF Core, Extensions.Hosting, Extensions.DI)
 
 ### v1.9.6
 - System powiadomień (alertów) z datą wyzwolenia — przypisanie do sprzętu, kategorii lub ogólne
